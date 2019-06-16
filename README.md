@@ -3,6 +3,8 @@ Growth parameters estimation of coral reef fishes
 
 ## Variable description
 
+### *otolith_data_complete_15_06_2019.csv*
+
 * **family**: Family
 * **genus**: Genus
 * **species**: Species
