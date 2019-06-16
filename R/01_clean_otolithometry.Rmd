@@ -1,0 +1,370 @@
+---
+title: "Clean and merge data"
+author : "Jeremy Wicquart"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: "cosmo"
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FALSE, warning = FALSE)
+
+```
+
+# Defining functions and packages
+
+```{r base}
+
+# 1. Source functions ----
+
+source("functions/firstup.R")
+
+# 2. Recquired packages ----
+
+library(stringr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(rfishbase)
+
+```
+
+# Otolithometric data
+
+```{r}
+
+# 1. Files of Fabien Morat ----
+
+# 1.1 Get list of csv file --
+
+files_list <- setdiff(list.files(path = "./../data/otolithometry/fabien", pattern = "\\.csv$"), 
+                      list.dirs(path = "./../data/otolithometry/fabien", recursive = FALSE, full.names = FALSE)) %>% 
+  as.data.frame(.)
+
+# 1.2 Bind datasets using a loop --
+
+# 1.2.1 Initialize final dataset with first file -
+
+data_otolith_fabien <- read.csv2(paste0("./../data/otolithometry/fabien/", files_list[1,1]))
+
+# 1.2.2 Bind with all other files -
+
+for(i in 2:nrow(files_list)){
+  
+  dataset_i <- read.csv2(paste0("./../data/otolithometry/fabien/", files_list[i,1]))
+  print(as.character(files_list[i,1]))
+  data_otolith_fabien <- bind_rows(data_otolith_fabien, dataset_i)
+  
+}
+
+# 1.2.3 Miscellaneous modifications -
+
+data_otolith_fabien <- data_otolith_fabien %>% 
+  mutate(fish = ifelse(is.na(fish), id, fish)) %>% # ID present in variables fish and id, put all in fish
+  select(-id, -lencap, -Location, -species) %>% # remove column containing only NA's or useless ones
+  rename("l0p" = "L0p",
+         "id" = "fish") %>% # rename columns
+  mutate(observer = "Fabien Morat") # Add the observer
+  
+# 1.2.4 Remove useless objects -
+
+rm(dataset_i, i, files_list)
+
+# 2. File of Guillemette de Synety and Jeremy Wicquart ----
+
+# 2.1 Import data --
+
+data_otolith_jeremy <- read.csv("./../data/otolithometry/jeremy/data_otoliths_GSJW.csv", sep = ";")
+
+# 2.2 Miscellaneous modifications --
+
+data_otolith_jeremy <- data_otolith_jeremy %>% 
+  rename("l0p" = "L0p",
+         "id" = "fish") %>% # rename columns
+  select(-lencap, -species) %>% # remove useless columns
+  mutate(radi = as.numeric(as.character(radi)),
+         radcap = as.numeric(as.character(radcap)),
+         observer = "Guillemette de Synéty and Jérémy Wicquart") # Add the observer
+
+# 3. File of Jean Bienvenu ----
+
+# 3.1 Import data --
+
+data_otolith_jean <- read.csv("./../data/otolithometry/jean/data_otoliths_JB.csv")
+
+# 3.2 Miscellaneous modifications --
+
+data_otolith_jean <- data_otolith_jean %>% 
+  select(-lencap, -species) %>% 
+  mutate(fish = str_replace_all(fish, "_D", "")) %>% # *note
+  rename("l0p" = "L0p",
+         "id" = "fish") %>% # rename columns
+  mutate(observer = "Jean Bienvenu") # Add the observer
+
+# *note : Replacement of _D (for Droit => meaning Right) by nothing (mistake of Jean Bienvenu)
+
+# 4. Bind all files together ----
+
+data_otolith <- bind_rows(data_otolith_fabien, data_otolith_jeremy, data_otolith_jean)
+
+rm(dataset_i, i, files_list, data_otolith_fabien, data_otolith_jeremy, data_otolith_jean)
+
+```
+
+# Morphometric data
+
+```{r}
+
+# 1. Reef services data ----
+
+data_morphometry_reefservices <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_reef-services.csv", sep = ";") %>% 
+  select(Valid_name, Names, LT_mm, LS_mm, BioM_g) %>% 
+  rename("id" = "Names",
+         "species" = "Valid_name",
+         "total_length" = "LT_mm",
+         "standard_length" = "LS_mm",
+         "biomass" = "BioM_g") %>% 
+  mutate(location = str_split_fixed(id, "_", n = 4)[,3]) %>% 
+  mutate(location = str_replace_all(location, c("MO" = "Moorea",
+                                                "TA" = "Tuamotu",
+                                                "SC" = "Scilly")))
+
+# 2. Gambier data ----
+
+data_morphometry_gambier <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_gambier.csv", sep = ";") %>% 
+  select(Names, Species, TL_cm, SL_cm, Masse..g.) %>% 
+  mutate(TL_cm = TL_cm*10,
+         SL_cm = SL_cm*10) %>% # Convert total and standard length from cm to mm
+  rename("id" = "Names",
+         "species" = "Species",
+         "total_length" = "TL_cm",
+         "standard_length" = "SL_cm",
+         "biomass" = "Masse..g.") %>% 
+  mutate(location = "Gambiers") # Add location
+
+# Estimate the total length for Naso unicornis*
+
+data_morphometry_gambier_naso <- data_morphometry_gambier %>% 
+  filter(species == "Naso_unicornis") %>% 
+  mutate(ratio = total_length/standard_length) %>% 
+  mutate(ratio = mean(ratio, na.rm = TRUE)) %>% 
+  mutate(total_length = ifelse(is.na(total_length), standard_length*ratio, total_length))
+
+data_morphometry_gambier <- data_morphometry_gambier %>% 
+  filter(species != "Naso_unicornis") %>% 
+  bind_rows(., data_morphometry_gambier_naso)
+
+# * the photographs doesn't include the caudal fin so total length is missing for 2 Naso unicornis
+# -> estimate the total length from the ratio total length/standard length through available data
+# of the 2 other Naso unicornis
+
+# 3. Marquesas data #1 ----
+
+data_morphometry_marquesas1 <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_marquesas-1.csv", sep = ";") %>% 
+  select(ID, species, TL_cm, SL_cm, biomass, comments) %>% 
+  mutate(biom_unusable = grepl("masse unusable", comments)) %>% # Check if biomass is usable or not (in the comments variable)
+  mutate(biomass = ifelse(biom_unusable == TRUE, NA, biomass)) %>% # If biomass is unusable then change value of biomass by NA
+  select(-comments, -biom_unusable) %>% 
+  mutate(TL_cm = TL_cm*10,
+         SL_cm = SL_cm*10) %>% # Convert total and standard length from cm to mm
+  rename("id" = "ID",
+         "total_length" = "TL_cm",
+         "standard_length" = "SL_cm") %>% 
+  mutate(location = "Marquesas") # Add location
+
+# 4. Marquesas data #2 ----
+
+data_morphometry_marquesas2 <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_marquesas-2.csv", sep = ";") %>% 
+  select(ID, species, TL.cm, SL, biomass, comments) %>% 
+  mutate(biom_unusable = grepl("masse inutilisable", comments)) %>% # Check if biomass is usable or not (in the comments variable)
+  mutate(biomass = ifelse(biom_unusable == TRUE, NA, biomass)) %>% # If biomass is unusable then change value of biomass by NA
+  select(-comments, -biom_unusable) %>% 
+  mutate(TL.cm = TL.cm*10,
+         SL = SL*10) %>% # Convert total and standard length from cm to mm
+  rename("id" = "ID",
+         "total_length" = "TL.cm",
+         "standard_length" = "SL") %>% 
+  mutate(location = "Marquesas") # Add location
+
+# 5. Hao data ----
+
+data_morphometry_hao <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_hao.csv", sep = ";") %>% 
+  select(Code.fish, Espèce.Fish, Poids.Pt.en.g, Taille.Lt.en.mm) %>% 
+  rename("id" = "Code.fish",
+         "species" = "Espèce.Fish",
+         "total_length" = "Taille.Lt.en.mm",
+         "biomass" = "Poids.Pt.en.g") %>% 
+  mutate(location = "Hao") # Add location
+
+# 6. MOOFE data (Nina dissections) ----
+
+data_morphometry_moofe <- read.csv("./../data/morphometry/MOOFE_dissections.csv", sep = ",") %>% 
+  select(ID, Location, Genus, Species, TL, SL, Weight) %>% 
+  mutate(species = paste(Genus, Species),
+         TL = TL*10,
+         SL = SL*10) %>% 
+  select(-Genus, -Species) %>% 
+  rename("id" = "ID",
+         "location" = "Location",
+         "total_length" = "TL",
+         "standard_length" = "SL",
+         "biomass" = "Weight")
+
+# 7. Bind files ----
+
+data_morphometry <- bind_rows(data_morphometry_gambier, data_morphometry_marquesas1, 
+                              data_morphometry_marquesas2, data_morphometry_reefservices,
+                              data_morphometry_hao, data_morphometry_moofe) %>% 
+  mutate(species = firstup(species)) # First letter of genus in uppercase
+
+rm(data_morphometry_gambier, data_morphometry_marquesas1, 
+   data_morphometry_marquesas2, data_morphometry_reefservices,
+   data_morphometry_hao, data_morphometry_moofe, data_morphometry_gambier_naso)
+
+```
+
+# Merge
+
+```{r}
+
+# 1. Solve problems due to different id in otolithometry and morphometry ----
+
+# 1.1 B070 and B099 (Lutjanus kasmira from Gambiers) --
+
+data_otolith <- data_otolith %>% 
+  mutate(id = str_replace_all(id, c("B070" = "GAM18_B070",
+                                    "B099" = "GAM18_B099")))
+
+# 1.2 Add missing underscores (GAM18A... to GAM18_A...) --
+
+data_morphometry <- data_morphometry %>% 
+  mutate(id = str_replace_all(id, "GAM18A", "GAM18_A"))
+
+# 1.3 Remove suffix _f --
+
+data_otolith <- data_otolith %>% 
+  mutate(id = str_replace_all(id, "_f", ""))
+
+# 1.4 Change 0D_NI by OD_NI --
+
+data_otolith <- data_otolith %>% 
+  mutate(id = str_replace_all(id, "0D_NI", "OD_NI"))
+
+# 2. Bind otolithometric and morphometric data ----
+
+data_complete <- merge(data_otolith, data_morphometry, all.x = TRUE) %>% 
+  mutate(species = str_replace_all(species, "_", " ")) %>% 
+  mutate(species = str_replace_all(species, c("Ostorhinchus apogonides" = "Ostorhinchus apogonoides",
+                                              "Abudefduf sexfaciatus" = "Abudefduf sexfasciatus")))
+
+rm(data_morphometry, data_otolith)
+
+# 2. Add family and genus variable ----
+
+data_complete <- load_taxa() %>% 
+  select(Family, Genus, Species) %>%
+  filter(Species %in% unique(data_complete$species)) %>% 
+  as.data.frame(.) %>% 
+  rename("family" = "Family",
+         "genus" = "Genus",
+         "species" = "Species") %>% 
+  merge(., data_complete, all.y = TRUE)
+
+# 3. Choose the lencap between standard_length and total_length and re-order variables ----
+# total_length choosed because standard lengths are missing in Hao data
+
+data_complete <- data_complete %>% 
+  select(-standard_length) %>% 
+  rename("lencap" = "total_length") %>% 
+  mutate(family = as.factor(family),
+         genus = as.factor(genus),
+         species = as.factor(species),
+         id = as.factor(id),
+         observer = as.factor(observer)) %>% 
+  select(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, biomass, location, observer) %>% # Re-order variables
+  arrange(family, genus, species, id, agei) # arrange rows
+
+# 4. Remove id without lencap available (prefix CL2, from Pauline Fey PhD) ----
+
+data_complete <- data_complete %>% 
+  filter(! id %in% c("CL2_AC_PY_marq_001", "CL2_AC_NI_003_marq", "CL2_AC_NI_001_marq"))
+
+# 4. Standardize all l0p ----
+
+# 4.1 Manually complete file of L0p ----
+
+# If file exist
+if(file.exists("./../data/l0p/species_l0p.csv")){
+  
+  # a) Open it (old_species_l0p)
+  old_species_l0p <- read.csv2("./../data/l0p/species_l0p.csv")
+  
+  # b) Create data (new_species_l0p)
+  new_species_l0p <- data_complete %>%
+    select(family, species) %>% 
+    group_by(species) %>% 
+    filter(!duplicated(species)) %>% 
+    mutate(l0p = NA)
+  
+  # c) Found differences
+  vector_diff <- new_species_l0p$species %in% 
+    old_species_l0p$species
+  
+  vector_diff <- which(vector_diff == FALSE)
+  
+  # d) Bind the rows and export the file
+  old_species_l0p %>%
+    rbind.data.frame(., new_species_l0p[vector_diff,]) %>%
+    write.csv2(., "./../data/l0p/species_l0p.csv", row.names = FALSE)
+  
+}else{
+  
+  # Else create it
+  data_complete %>%
+    select(family, species) %>% 
+    group_by(species) %>% 
+    filter(!duplicated(species)) %>% 
+    mutate(l0p = NA) %>% 
+    write.csv2(., "./../data/l0p/species_l0p.csv", row.names = FALSE)
+  
+}
+
+# 4.2 Merge l0p data with data complete ----
+
+data_complete <- data_complete %>% 
+  select(-l0p) %>% # Remove existing l0p
+  merge(., read.csv2("./../data/l0p/species_l0p.csv"), all.x = TRUE) # Merge with the new ones
+
+rm(new_species_l0p, old_species_l0p)
+
+# 5. Re order variables ----
+
+data_complete <- data_complete %>% 
+  select(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, biomass, location, observer)
+
+# 6. Export data ----
+
+write.csv(data_complete, "./../data/otolith_data_complete_15_06_2019.csv", row.names = FALSE)
+
+```
+
+# Reproducibility
+
+```{r reprod}
+
+# 1. Reproducibility ----
+
+sessionInfo()
+
+```
+
+---
+Jeremy WICQUART | jeremywicquart@gmail.com | `r format(Sys.time())`

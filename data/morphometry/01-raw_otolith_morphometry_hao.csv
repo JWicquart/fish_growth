@@ -1,0 +1,98 @@
+Code fish;Date;Espèce Fish;Photos parasites ou fish;Poids Pt en g;Taille Lt en mm;Sexe;Otoliths;Ageage
+H1;27/02/2018;Plectropomus laevis;;1288;450;M;2;oui
+H2;27/02/2018;Plectropomus laevis;;450;400;M;0;non
+H3;27/02/2018;Plectropomus laevis;;776;380;juv ?;0;non
+H4;27/02/2018;Plectropomus laevis;;757;375;juv ?;0;non
+H5;27/02/2018;Epinephelus polyphekadion;;860;402;M;0;non
+H6;27/02/2018;Epinephelus polyphekadion;;1004;406;?;0;non
+H7;27/02/2018;Epinephelus tauvina;plusieurs des fish;3500;570;?;0;non
+H8;27/02/2018;Epinephelus polyphekadion;;1750;480;?;0;non
+H9;27/02/2018;Epinephelus polyphekadion;kystes longs blcs;1333;436;?;0;non
+H10;28/02/2018;Epinephelus hexagonatus;des 3 merra et 1 hexagonatus H10 à H13 ensembles;42;139;juv ?;1;oui
+H11;28/02/2018;Epinephelus merra;des 3 merra et 1 hexagonatus H10 à H13 ensembles;148;209;F;1;non
+H12;28/02/2018;Epinephelus merra;des 3 merra et 1 hexagonatus H10 à H13 ensembles;233;255;F;1;oui
+H13;28/02/2018;Epinephelus merra;des 3 merra et 1 hexagonatus H10 à H13 ensembles;218;261;M ?;2;oui
+H14;28/02/2018;Epinephelus socialis;fish;596;325;F;0;non
+H15;28/02/2018;Saloptia poweli (mérou d'or) profond;fish;596;360;?;1;oui
+H16;28/02/2018;Cephalopholis argus;cavité géné fish pour parasites;616;330;F;2 cassés;oui
+H17;28/02/2018;Cephalopholis argus;;915;390;F;1 + 1 cassé;oui
+H18;28/02/2018;Cephalopholis argus;;1877;473;F;0;non
+H19;28/02/2018;Epinephelus polyphekadion;fish;1724;466;M;2;oui
+H20;28/02/2018;Epinephelus polyphekadion;;700;355;M;2;oui
+H21;28/02/2018;Epinephelus hexagonatus;;106;160;F;1 + 1 cassé ?;oui
+H22;01/03/2018;Plectropomus laevis;fish;1762;495;M;1;oui
+H23;01/03/2018;Plectropomus laevis;;1280;458;M;1;oui
+H24;01/03/2018;Plectropomus laevis;;1340;470;M;1 + 1 cassé;oui
+H25;01/03/2018;Plectropomus laevis;;1379;450;M;2;oui
+H26;01/03/2018;Epinephelus polyphekadion;fish;885;400;M;1 + 1 cassé;oui
+H27;01/03/2018;Epinephelus polyphekadion;;1000;405;M;2;oui
+H28;02/03/2018;Epinephelus polyphekadion;;1144;420;M;2;oui
+H29;02/03/2018;Epinephelus polyphekadion;;468;310;?;2;oui
+H30;02/03/2018;Epinephelus hexagonatus;fish photos 1862 à 1865 (141-5526);208;235;M;2;oui
+H31;02/03/2018;Epinephelus hexagonatus;fish photos 1866 à 1868;230;248;M;2;oui
+H32;02/03/2018;Epinephelus hexagonatus;fish photos 1869 à 1871;207;235;M;2;oui
+H33;02/03/2018;Epinephelus hexagonatus;fish photos 1872 à 1874;162;220;?;2;oui
+H34;02/03/2018;Epinephelus hexagonatus;fish photos 1875 à 1877;143;203;F;2;oui
+H35;02/03/2018;Epinephelus hexagonatus;fish photo 1878 (141-5542);66;162;M;2;oui
+H36;05/03/2018;Plectropomus laevis;fish plusieurs photo des poissons du jour tous ensemble;1008;415;juv ?;1 + 1 cassé;oui
+H37;05/03/2018;Plectropomus laevis;idem;1420;470;F;2;oui
+H38;05/03/2018;Plectropomus laevis;idem;2127;510;F;2;oui
+H39;05/03/2018;Plectropomus laevis;idem;1268;460;M;1 + 1 cassé;oui
+H40;05/03/2018;Plectropomus laevis;idem;5000;700;M;1 + 1 cassé;oui
+H41;05/03/2018;Epinephelus polyphekadion;idem;845;383;M;1 + 1 cassé;oui
+H42;05/03/2018;Cephalopholis argus;idem;758;354;?;2;oui
+H43;05/03/2018;Cephalopholis argus;idem;1198;423;F;1 cassé;non
+H44;05/03/2018;Cephalopholis argus;idem;881;382;F;1 + 1 cassé;oui
+H45;05/03/2018;Cephalopholis argus;idem;584;321;?;2;oui
+H46;05/03/2018;Cephalopholis argus;idem;380;292;F;1 +  cassé;oui
+H47;05/03/2018;Cephalopholis argus;idem;504;312;F;1 + 1 cassé;oui
+H48;06/03/2018;Cephalopholis argus;idem + Parasites cavité générale photos 1899 à 1901;1360;429;M;2;oui
+H49;06/03/2018;Plectropomus laevis;fish plusieurs photo des poissons du jour tous ensemble;999;399;?;2 cassés?;oui
+H50;06/03/2018;Epinephelus merra;idem;245;260;M;2;oui
+H51;06/03/2018;Epinephelus merra;idem;214;251;?;2;oui
+H52;06/03/2018;Epinephelus hexagonatus;idem;314;268;M;2;oui
+H53;06/03/2018;Epinephelus hexagonatus;idem;207;238;F;2;non
+H54;06/03/2018;Epinephelus hexagonatus;idem;152;210;M;2;oui
+H55;06/03/2018;Epinephelus hexagonatus;idem;176;220;F;1;oui
+H56;06/03/2018;Epinephelus hexagonatus;idem;290;251;F;2;oui
+H57;06/03/2018;Epinephelus hexagonatus;idem;229;236;F;1;oui
+H58;06/03/2018;Epinephelus hexagonatus;idem;200;237;F;2;oui
+H59;06/03/2018;Epinephelus hexagonatus;idem;127;195;F;1;oui
+H60;06/03/2018;Epinephelus hexagonatus;idem;296;258;M;2 cassés;oui
+H61;16/07/2018;Cephalopholis argus;1903;300;264;;1;oui
+H62;16/07/2018;Cephalopholis argus;1904;1286;332;;1+1cassé;oui
+H63;16/07/2018;Plectropomus laevis;;1327;458;;2;oui
+H64;16/07/2018;Plectropomus laevis;;1482;474;;1+1cassé;oui
+H65;16/07/2018;Plectropomus laevis;;1630;484;;2;oui
+H66;16/07/2018;Plectropomus laevis;1905;1592;490;;1+1cassé;oui
+H67;16/07/2018;Plectropomus laevis;;2904;582;;2casses;non
+H68;16/07/2018;Plectropomus laevis;;1375;460;;2;non
+H69;17/07/2018;Epinephelus polyphekadion;1906-1910;2243;514;;2;oui
+H70;17/07/2018;Epinephelus polyphekadion;;750;366;;2;oui
+H71;17/07/2018;Epinephelus polyphekadion;911-912;1092;420;;2;oui
+H72;17/07/2018;Epinephelus polyphekadion;;346;290;;2;oui
+H73;17/07/2018;Epinephelus polyphekadion;;202;252;;2;oui
+H74;17/07/2018;epinephelus merra;916-917;235;248;;2casses;oui
+H75;17/07/2018;epinephelus merra;918-919;180;230;;1+1cassé;oui
+H76;17/07/2018;Epinephelus tauvina;1920-1925;1428;472;;2;oui
+H77;18/07/2018;Plectropomus laevis;;653;356;;2 cassés;oui
+H78;18/07/2018;Plectropomus laevis;;1205;462;;2;oui
+H79;18/07/2018;Epinephelus merra;1928-1929;256;256;;1+1;oui
+H80;18/07/2018;Epinephelus merra;1930;120;196;;2 cassés;oui
+H81;18/07/2018;Epinephelus polyphekadion;;600;346;;2;oui
+H82;18/07/2018;Cephalopholis argus;;810;344;;2;oui
+H83;18/07/2018;Cephalopholis argus;1931-1932;1722;464;;0;non
+H84;19/07/2018;Epinephelus merra;1933;127;208;f;1+1;oui
+H85;19/07/2018;Epinephelus merra;;222;250;f;2;oui
+H86;19/07/2018;Epinephelus merra;;135;210;m;2;oui
+H87;19/07/2018;Cephalopholis argus;;678;348;m;2;oui
+H88;19/07/2018;Cephalopholis argus;;1182;422;m;1+1;oui
+H89;19/07/2018;Cephalopholis argus;;430;226;m;2;oui
+H90;19/07/2018;Cephalopholis argus;;561;221;f;1;oui
+H91;19/07/2018;Epinephelus polyphekadion;1934;596;342;m;2;oui
+h92;19/07/2018;Plectropomus laevis;;1730;526;;0;non
+H93;20/07/2018;Epinephelus merra;;108;201;;2;oui
+H94;20/07/2018;Epinephelus merra;;124;198;f;1+1;oui
+h95;20/07/2018;Epinephelus tauvina;1935-1937;1392;456;f;1+1;non
+H96;20/07/2018;Plectropomus laevis;;1355;484;m;2;oui
+H97;20/07/2018;Plectropomus laevis;;1711;510;;2;oui
