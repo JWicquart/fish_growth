@@ -45,7 +45,7 @@ theme_set(theme_perso())
 
 # 3. Load data ----
 
-data_complete <- read.csv("./../data/otolith_data_complete_15_06_2019.csv")
+data_complete <- read.csv("./../data/otolith_data_complete_28_06_2019.csv")
 
 ```
 

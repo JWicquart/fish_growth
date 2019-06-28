@@ -352,7 +352,7 @@ data_complete <- data_complete %>%
 
 # 6. Export data ----
 
-write.csv(data_complete, "./../data/otolith_data_complete_15_06_2019.csv", row.names = FALSE)
+write.csv(data_complete, "./../data/otolith_data_complete_28_06_2019.csv", row.names = FALSE)
 
 ```
 
