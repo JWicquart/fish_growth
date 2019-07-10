@@ -26,6 +26,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FA
 # 1. Source functions ----
 
 source("functions/firstup.R")
+source("functions/backcalc.R")
 
 # 2. Recquired packages ----
 
@@ -345,14 +346,24 @@ data_complete <- data_complete %>%
 
 rm(new_species_l0p, old_species_l0p)
 
-# 5. Re order variables ----
+# 5. Make the back-calculation ----
+
+# 5.1 Back-calculation for each species --
+
+data_complete <- ddply(data_complete, .(species), function(x) backcalc(x))
+
+# 5.2 Replacement of Li at age 0 by the value of L0p --
+
+data_complete$li[data_complete$agei == 0] <- data_complete$l0p[data_complete$agei == 0]
+
+# 6. Re order variables ----
 
 data_complete <- data_complete %>% 
-  select(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, biomass, location, observer)
+  select(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, r0p, li, biomass, location, observer)
 
-# 6. Export data ----
+# 7. Export data ----
 
-write.csv(data_complete, "./../data/otolith_data_complete_28_06_2019.csv", row.names = FALSE)
+write.csv(data_complete, "./../data/otolith_data_complete_10_07_2019.csv", row.names = FALSE)
 
 ```
 

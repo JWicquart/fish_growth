@@ -1,11 +1,23 @@
-# Set the default colors ----
+# 1. Recquired packages ----
 
-col_1 <- "#ECF0F1" # Lightgrey
-col_2 <- "#2C3E50" # Darkgrey - Black
-col_3 <- "#446CB3" # Darkblue
-col_4 <- "#89c4f4" # Lightblue
+require(extrafont) # For fonts
+require(RColorBrewer) # For palettes
 
-# Set the default font family ----
+# 2. Set the default font family ----
 
-require(extrafont)
-font_choose <- "Century Schoolbook"
+font_choose_graph <- "Century Schoolbook"
+font_choose_map <- "Century Gothic"
+
+# 3. Set the colors ----
+
+# 3.1 For map --
+
+col_fill_map <- "#ECECEC"
+col_color_map <- "#95A5A6"
+col_background_map <- "#f0f8ff"
+
+# 3.2 For graphs --
+
+col_fill_graph <- "#89C4F4"
+col_color_graph <- "#446CB3"
+col_facet <- "#ECF0F1"

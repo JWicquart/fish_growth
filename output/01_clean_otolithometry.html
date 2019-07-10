@@ -11,7 +11,7 @@
 
 <meta name="author" content="Jeremy Wicquart" />
 
-<meta name="date" content="2019-07-02" />
+<meta name="date" content="2019-07-10" />
 
 <title>Clean and merge data</title>
 
@@ -1625,7 +1625,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Clean and merge data</h1>
 <h4 class="author">Jeremy Wicquart</h4>
-<h4 class="date">2019-07-02</h4>
+<h4 class="date">2019-07-10</h4>
 
 </div>
 
@@ -1635,14 +1635,15 @@ div.tocify {
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="co"># 1. Source functions ----</span></a>
 <a class="sourceLine" id="cb1-2" title="2"></a>
 <a class="sourceLine" id="cb1-3" title="3"><span class="kw">source</span>(<span class="st">&quot;functions/firstup.R&quot;</span>)</a>
-<a class="sourceLine" id="cb1-4" title="4"></a>
-<a class="sourceLine" id="cb1-5" title="5"><span class="co"># 2. Recquired packages ----</span></a>
-<a class="sourceLine" id="cb1-6" title="6"></a>
-<a class="sourceLine" id="cb1-7" title="7"><span class="kw">library</span>(stringr)</a>
-<a class="sourceLine" id="cb1-8" title="8"><span class="kw">library</span>(plyr)</a>
-<a class="sourceLine" id="cb1-9" title="9"><span class="kw">library</span>(dplyr)</a>
-<a class="sourceLine" id="cb1-10" title="10"><span class="kw">library</span>(tidyr)</a>
-<a class="sourceLine" id="cb1-11" title="11"><span class="kw">library</span>(rfishbase)</a></code></pre></div>
+<a class="sourceLine" id="cb1-4" title="4"><span class="kw">source</span>(<span class="st">&quot;functions/backcalc.R&quot;</span>)</a>
+<a class="sourceLine" id="cb1-5" title="5"></a>
+<a class="sourceLine" id="cb1-6" title="6"><span class="co"># 2. Recquired packages ----</span></a>
+<a class="sourceLine" id="cb1-7" title="7"></a>
+<a class="sourceLine" id="cb1-8" title="8"><span class="kw">library</span>(stringr)</a>
+<a class="sourceLine" id="cb1-9" title="9"><span class="kw">library</span>(plyr)</a>
+<a class="sourceLine" id="cb1-10" title="10"><span class="kw">library</span>(dplyr)</a>
+<a class="sourceLine" id="cb1-11" title="11"><span class="kw">library</span>(tidyr)</a>
+<a class="sourceLine" id="cb1-12" title="12"><span class="kw">library</span>(rfishbase)</a></code></pre></div>
 </div>
 <div id="otolithometric-data" class="section level1">
 <h1>Otolithometric data</h1>
@@ -2002,14 +2003,24 @@ div.tocify {
 <a class="sourceLine" id="cb6-108" title="108"></a>
 <a class="sourceLine" id="cb6-109" title="109"><span class="kw">rm</span>(new_species_l0p, old_species_l0p)</a>
 <a class="sourceLine" id="cb6-110" title="110"></a>
-<a class="sourceLine" id="cb6-111" title="111"><span class="co"># 5. Re order variables ----</span></a>
+<a class="sourceLine" id="cb6-111" title="111"><span class="co"># 5. Make the back-calculation ----</span></a>
 <a class="sourceLine" id="cb6-112" title="112"></a>
-<a class="sourceLine" id="cb6-113" title="113">data_complete &lt;-<span class="st"> </span>data_complete <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb6-114" title="114"><span class="st">  </span><span class="kw">select</span>(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, biomass, location, observer)</a>
-<a class="sourceLine" id="cb6-115" title="115"></a>
-<a class="sourceLine" id="cb6-116" title="116"><span class="co"># 6. Export data ----</span></a>
-<a class="sourceLine" id="cb6-117" title="117"></a>
-<a class="sourceLine" id="cb6-118" title="118"><span class="kw">write.csv</span>(data_complete, <span class="st">&quot;./../data/otolith_data_complete_28_06_2019.csv&quot;</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb6-113" title="113"><span class="co"># 5.1 Back-calculation for each species --</span></a>
+<a class="sourceLine" id="cb6-114" title="114"></a>
+<a class="sourceLine" id="cb6-115" title="115"><span class="co">#data_complete &lt;- ddply(data_complete, .(species), function(x) backcalc(x))</span></a>
+<a class="sourceLine" id="cb6-116" title="116"></a>
+<a class="sourceLine" id="cb6-117" title="117"><span class="co"># 5.2 Replacement of Li at age 0 by the value of L0p --</span></a>
+<a class="sourceLine" id="cb6-118" title="118"></a>
+<a class="sourceLine" id="cb6-119" title="119"><span class="co">#data_complete$li[data_complete$agei == 0] &lt;- data_complete$l0p[data_complete$agei == 0]</span></a>
+<a class="sourceLine" id="cb6-120" title="120"></a>
+<a class="sourceLine" id="cb6-121" title="121"><span class="co"># 6. Re order variables ----</span></a>
+<a class="sourceLine" id="cb6-122" title="122"></a>
+<a class="sourceLine" id="cb6-123" title="123">data_complete &lt;-<span class="st"> </span>data_complete <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb6-124" title="124"><span class="st">  </span><span class="kw">select</span>(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, biomass, location, observer)</a>
+<a class="sourceLine" id="cb6-125" title="125"></a>
+<a class="sourceLine" id="cb6-126" title="126"><span class="co"># 7. Export data ----</span></a>
+<a class="sourceLine" id="cb6-127" title="127"></a>
+<a class="sourceLine" id="cb6-128" title="128"><span class="kw">write.csv</span>(data_complete, <span class="st">&quot;./../data/otolith_data_complete_10_07_2019.csv&quot;</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
 </div>
 <div id="reproducibility" class="section level1">
 <h1>Reproducibility</h1>
@@ -2043,7 +2054,7 @@ div.tocify {
 ## [21] rmarkdown_1.13   stringi_1.4.3    compiler_3.6.0   pillar_1.4.1    
 ## [25] pkgconfig_2.0.2</code></pre>
 <hr />
-<p>Jeremy WICQUART | <a href="mailto:jeremywicquart@gmail.com" class="email">jeremywicquart@gmail.com</a> | 2019-07-02 17:14:17</p>
+<p>Jeremy WICQUART | <a href="mailto:jeremywicquart@gmail.com" class="email">jeremywicquart@gmail.com</a> | 2019-07-10 23:31:42</p>
 </div>
 
 

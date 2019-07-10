@@ -26,7 +26,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FA
 # 1. Source functions ----
 
 source("functions/graphical_par.R")
-source("functions/theme_perso.R")
+source("functions/theme_graph.R")
 source("functions/allometry.R")
 
 # 2. Recquired packages ----
@@ -41,11 +41,11 @@ library(data.table)
 library(formattable)
 
 # Set theme_perso() as the default ggplot theme
-theme_set(theme_perso())
+theme_set(theme_graph())
 
 # 3. Load data ----
 
-data_complete <- read.csv("./../data/otolith_data_complete_28_06_2019.csv")
+data_complete <- read.csv("./../data/otolith_data_complete_10_07_2019.csv")
 
 ```
 
@@ -105,13 +105,28 @@ data_complete %>%
 ```{r}
 
 ggplot(data_complete, aes(x = agei, y = radi)) +
-  geom_point(color = col_3, fill = col_4, size = 1, shape = 21)+
+  geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
   theme(strip.text.x = element_text(size = 8, face = "italic"),
-        strip.background = element_rect(colour = "black", fill = col_1, size = 1),
-        plot.title = element_text(colour = col_3),
-        plot.subtitle = element_text(colour = col_2)) +
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black")) +
   facet_wrap(~species, scales = "free", ncol = 5) +
   labs(x = "Age (years)", y = "Radius at age i (mm)", title = "Check for outliers", subtitle = "agei vs radi")
+
+```
+
+# Agei *vs* Li
+
+```{r}
+
+ggplot(data_complete, aes(x = agei, y = li)) +
+  geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
+  theme(strip.text.x = element_text(size = 8, face = "italic"),
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black")) +
+  facet_wrap(~species, scales = "free", ncol = 5) +
+  labs(x = "Age (years)", y = "Length at age i (mm)", title = "Check for outliers", subtitle = "agei vs li")
 
 ```
 
@@ -140,12 +155,12 @@ pred_values <- ddply(data_complete_na_rm, .(species), function(x) seq(0, max(x$l
 # 4. Plot ----
 
 ggplot() +
-  geom_line(data = pred_values, aes(x = xnew, y = ynew), color = col_3) +
-  geom_point(data = data_complete, aes(x = lencap, y = biomass), color = col_3, fill = col_4, size = 1, shape = 21)+
+  geom_line(data = pred_values, aes(x = xnew, y = ynew), color = col_color_graph) +
+  geom_point(data = data_complete, aes(x = lencap, y = biomass), color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
   theme(strip.text.x = element_text(size = 8, face = "italic"),
-        strip.background = element_rect(colour = "black", fill = col_1, size = 1),
-        plot.title = element_text(colour = col_3),
-        plot.subtitle = element_text(colour = col_2)) +
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black")) +
   facet_wrap(~species, scales = "free", ncol = 5) +
   labs(x = "Length at capture (mm)", y = "Biomass at capture (g)", title = "Check for outliers", subtitle = "lencap vs biomass")
 
