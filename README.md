@@ -3,7 +3,7 @@ Growth parameters estimation of coral reef fishes
 
 ## Variable description
 
-### *otolith_data_complete_15_06_2019.csv*
+### *otolith_data_complete_10_07_2019.csv*
 
 * `family` Family
 * `genus` Genus
@@ -15,6 +15,8 @@ Growth parameters estimation of coral reef fishes
 * `radcap` Radius of the otolith at capture (*mm*)
 * `lencap` Length of the fish at capture (*total length, mm*)
 * `l0p` Length of the fish at hatching (*mm*)
+* `r0p` Radius of the fish at hatching (*mm*)
+* `li` Length of the fish at age *i* (*mm*)
 * `biomass` Biomass of the fish (*wet biomass, g*)
 * `location` Location of the sampling
 * `observer` Name of the person who realized the otolith reading
