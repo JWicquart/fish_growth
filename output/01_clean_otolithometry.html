@@ -11,7 +11,7 @@
 
 <meta name="author" content="Jeremy Wicquart" />
 
-<meta name="date" content="2019-07-10" />
+<meta name="date" content="2019-07-12" />
 
 <title>Clean and merge data</title>
 
@@ -1625,7 +1625,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Clean and merge data</h1>
 <h4 class="author">Jeremy Wicquart</h4>
-<h4 class="date">2019-07-10</h4>
+<h4 class="date">2019-07-12</h4>
 
 </div>
 
@@ -2007,16 +2007,16 @@ div.tocify {
 <a class="sourceLine" id="cb6-112" title="112"></a>
 <a class="sourceLine" id="cb6-113" title="113"><span class="co"># 5.1 Back-calculation for each species --</span></a>
 <a class="sourceLine" id="cb6-114" title="114"></a>
-<a class="sourceLine" id="cb6-115" title="115"><span class="co">#data_complete &lt;- ddply(data_complete, .(species), function(x) backcalc(x))</span></a>
+<a class="sourceLine" id="cb6-115" title="115">data_complete &lt;-<span class="st"> </span><span class="kw">ddply</span>(data_complete, .(species), <span class="cf">function</span>(x) <span class="kw">backcalc</span>(x))</a>
 <a class="sourceLine" id="cb6-116" title="116"></a>
 <a class="sourceLine" id="cb6-117" title="117"><span class="co"># 5.2 Replacement of Li at age 0 by the value of L0p --</span></a>
 <a class="sourceLine" id="cb6-118" title="118"></a>
-<a class="sourceLine" id="cb6-119" title="119"><span class="co">#data_complete$li[data_complete$agei == 0] &lt;- data_complete$l0p[data_complete$agei == 0]</span></a>
+<a class="sourceLine" id="cb6-119" title="119">data_complete<span class="op">$</span>li[data_complete<span class="op">$</span>agei <span class="op">==</span><span class="st"> </span><span class="dv">0</span>] &lt;-<span class="st"> </span>data_complete<span class="op">$</span>l0p[data_complete<span class="op">$</span>agei <span class="op">==</span><span class="st"> </span><span class="dv">0</span>]</a>
 <a class="sourceLine" id="cb6-120" title="120"></a>
 <a class="sourceLine" id="cb6-121" title="121"><span class="co"># 6. Re order variables ----</span></a>
 <a class="sourceLine" id="cb6-122" title="122"></a>
 <a class="sourceLine" id="cb6-123" title="123">data_complete &lt;-<span class="st"> </span>data_complete <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb6-124" title="124"><span class="st">  </span><span class="kw">select</span>(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, biomass, location, observer)</a>
+<a class="sourceLine" id="cb6-124" title="124"><span class="st">  </span><span class="kw">select</span>(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, r0p, li, biomass, location, observer)</a>
 <a class="sourceLine" id="cb6-125" title="125"></a>
 <a class="sourceLine" id="cb6-126" title="126"><span class="co"># 7. Export data ----</span></a>
 <a class="sourceLine" id="cb6-127" title="127"></a>
@@ -2042,8 +2042,8 @@ div.tocify {
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] rfishbase_3.0.3 tidyr_0.8.3     dplyr_0.8.1     plyr_1.8.4     
-## [5] stringr_1.4.0  
+## [1] minpack.lm_1.2-1 rfishbase_3.0.3  tidyr_0.8.3      dplyr_0.8.1     
+## [5] plyr_1.8.4       stringr_1.4.0   
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] Rcpp_1.0.1       knitr_1.23       magrittr_1.5     hms_0.4.2       
@@ -2054,7 +2054,7 @@ div.tocify {
 ## [21] rmarkdown_1.13   stringi_1.4.3    compiler_3.6.0   pillar_1.4.1    
 ## [25] pkgconfig_2.0.2</code></pre>
 <hr />
-<p>Jeremy WICQUART | <a href="mailto:jeremywicquart@gmail.com" class="email">jeremywicquart@gmail.com</a> | 2019-07-10 23:31:42</p>
+<p>Jeremy WICQUART | <a href="mailto:jeremywicquart@gmail.com" class="email">jeremywicquart@gmail.com</a> | 2019-07-12 15:07:56</p>
 </div>
 
 
