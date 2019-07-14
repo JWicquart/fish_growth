@@ -1,0 +1,16 @@
+Variable;Unit;Description
+family;;Family names according to Fishbase (https://www.fishbase.de/search.php)
+genus;;Genus names according to Fishbase (https://www.fishbase.de/search.php)
+species;;Species names according to Fishbase (https://www.fishbase.de/search.php)
+id;;Unique code identifying each individual
+agei;years;Age i
+radi;mm;Otolith radius at age i
+agecap;years;Age at capture
+radcap;mm;Otolith radius at capture
+lencap;mm;Total length at capture
+l0p;mm;Total length at hatching
+biomass;g;Wet biomass at capture
+location;;Island or archipelago of the sampling
+observer;;Name of the person who made the reading of the otolith
+r0p;mm;Otolith radius at hatching
+li;mm;Total length at age i

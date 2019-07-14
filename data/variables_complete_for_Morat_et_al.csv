@@ -1,0 +1,16 @@
+"Column";"Variable";"Description";"Unit";"Type";"Range"
+1;"family";"Family names according to Fishbase (https://www.fishbase.de/search.php)";"";"Factor";NA
+2;"genus";"Genus names according to Fishbase (https://www.fishbase.de/search.php)";"";"Factor";NA
+3;"species";"Species names according to Fishbase (https://www.fishbase.de/search.php)";"";"Factor";NA
+4;"id";"Unique code identifying each individual";"";"Factor";NA
+5;"agei";"Age i";"years";"Integer";"0 - 30"
+6;"radi";"Otolith radius at age i";"mm";"Numeric";"0 - 3.784"
+7;"agecap";"Age at capture";"years";"Integer";"0 - 30"
+8;"radcap";"Otolith radius at capture";"mm";"Numeric";"0.152 - 3.859"
+9;"lencap";"Total length at capture";"mm";"Numeric";"28.11 - 984.69"
+10;"l0p";"Total length at hatching";"mm";"Numeric";"1.45 - 4.25"
+11;"r0p";"Otolith radius at hatching";"mm";"Numeric";"0.012 - 0.086"
+12;"li";"Total length at age i";"mm";"Numeric";"1.45 - 949.576"
+13;"biomass";"Wet biomass at capture";"g";"Numeric";"0.4 - 12950"
+14;"location";"Island or archipelago of the sampling";"";"Factor";NA
+15;"observer";"Name of the person who made the reading of the otolith";"";"Factor";NA
