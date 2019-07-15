@@ -60,11 +60,11 @@ summary(data_complete)
 
 # 2. Total number of individuals ----
 
-length(unique(data_complete$id))
+length(unique(data_complete$ID))
 
 # 3 Total number of species ----
 
-length(unique(data_complete$species))
+length(unique(data_complete$Species))
 
 ```
 
@@ -73,9 +73,9 @@ length(unique(data_complete$species))
 ```{r}
 
 data_complete %>%
-  ddply(., .(species), summarize, n = length(unique(id)),
-        min_lencap = round(min(lencap, na.rm = TRUE), 0),
-        max_lencap = round(max(lencap, na.rm = TRUE), 0)) %>% 
+  ddply(., .(Species), summarize, n = length(unique(ID)),
+        min_lencap = round(min(Lcpt, na.rm = TRUE), 0),
+        max_lencap = round(max(Lcpt, na.rm = TRUE), 0)) %>% 
   kable(., col.names = c("Species", "n", "Min length (TL, mm)", "Max length (TL, mm)")) %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
   column_spec(1, italic = T)
@@ -87,8 +87,8 @@ data_complete %>%
 ```{r}
 
 data_complete %>%
-  ddply(., .(species, location), summarize, n = length(unique(id))) %>% 
-  spread(., key = location, value = n) %>% 
+  ddply(., .(Species, Location), summarize, n = length(unique(ID))) %>% 
+  spread(., key = Location, value = n) %>% 
   mutate(Gambiers = cell_spec(Gambiers, "html", color = ifelse(is.na(Gambiers), "white", "#446CB3")),
          Hao = cell_spec(Hao, "html", color = ifelse(is.na(Hao), "white", "#446CB3")),
          Marquesas = cell_spec(Marquesas, "html", color = ifelse(is.na(Marquesas), "white", "#446CB3")),
@@ -101,17 +101,17 @@ data_complete %>%
 
 ```
 
-# Agei *vs* radi
+# Agei *vs* Ri
 
 ```{r}
 
-ggplot(data_complete, aes(x = agei, y = radi)) +
+ggplot(data_complete, aes(x = Agei, y = Ri)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
   theme(strip.text.x = element_text(size = 8, face = "italic"),
         strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
         plot.title = element_text(colour = col_color_graph),
         plot.subtitle = element_text(colour = "black")) +
-  facet_wrap(~species, scales = "free", ncol = 5) +
+  facet_wrap(~Species, scales = "free", ncol = 5) +
   labs(x = "Age (years)", y = "Radius at age i (mm)", title = "Check for outliers", subtitle = "agei vs radi")
 
 ```
@@ -120,49 +120,49 @@ ggplot(data_complete, aes(x = agei, y = radi)) +
 
 ```{r}
 
-ggplot(data_complete, aes(x = agei, y = li)) +
+ggplot(data_complete, aes(x = Agei, y = Li)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
   theme(strip.text.x = element_text(size = 8, face = "italic"),
         strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
         plot.title = element_text(colour = col_color_graph),
         plot.subtitle = element_text(colour = "black")) +
-  facet_wrap(~species, scales = "free", ncol = 5) +
+  facet_wrap(~Species, scales = "free", ncol = 5) +
   labs(x = "Age (years)", y = "Length at age i (mm)", title = "Check for outliers", subtitle = "agei vs li")
 
 ```
 
-# Biomass *vs* lencap
+# Biomass *vs* Lcpt
 
 ```{r}
 
 # 1. Remove NA from data ----
 
 data_complete_na_rm <- data_complete %>% 
-  filter(!is.na(biomass) & !is.na(lencap))
+  filter(!is.na(Biomass) & !is.na(Lcpt))
 
 # 2. Get the parameters of the allometric regression for each species ----
 
-coef_allo <- ddply(data_complete_na_rm, .(species), function(x) allometry(data = x, xreg = "lencap", yreg = "biomass", graph = FALSE))
+coef_allo <- ddply(data_complete_na_rm, .(Species), function(x) allometry(data = x, xreg = "Lcpt", yreg = "Biomass", graph = FALSE))
 
 # 3. Generate predicted values ----
 
-pred_values <- ddply(data_complete_na_rm, .(species), function(x) seq(0, max(x$lencap), length.out = 100)) %>% # Create new x
+pred_values <- ddply(data_complete_na_rm, .(Species), function(x) seq(0, max(x$Lcpt), length.out = 100)) %>% # Create new x
                gather(., pos, xnew, -1) %>% # Gather multiple columns into two columns
-               select(species, xnew) %>% # Delete useless column
-               arrange(species) %>% # Sort DF by species
-               merge(., coef_allo, by = "species") %>% # Merge the DF with parameters of allometric regression
+               select(Species, xnew) %>% # Delete useless column
+               arrange(Species) %>% # Sort DF by species
+               merge(., coef_allo, by = "Species") %>% # Merge the DF with parameters of allometric regression
                mutate(ynew = a*xnew^b) # Calculate new y
 
 # 4. Plot ----
 
 ggplot() +
   geom_line(data = pred_values, aes(x = xnew, y = ynew), color = col_color_graph) +
-  geom_point(data = data_complete, aes(x = lencap, y = biomass), color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
+  geom_point(data = data_complete, aes(x = Lcpt, y = Biomass), color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
   theme(strip.text.x = element_text(size = 8, face = "italic"),
         strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
         plot.title = element_text(colour = col_color_graph),
         plot.subtitle = element_text(colour = "black")) +
-  facet_wrap(~species, scales = "free", ncol = 5) +
+  facet_wrap(~Species, scales = "free", ncol = 5) +
   labs(x = "Length at capture (mm)", y = "Biomass at capture (g)", title = "Check for outliers", subtitle = "lencap vs biomass")
 
 ```

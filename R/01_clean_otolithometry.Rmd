@@ -382,7 +382,22 @@ data_complete$li[data_complete$agei == 0] <- data_complete$l0p[data_complete$age
 # 6. Re order variables ----
 
 data_complete <- data_complete %>% 
-  select(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, r0p, li, biomass, location, observer)
+  select(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, r0p, li, biomass, location, observer) %>% 
+  rename("Family" = "family",
+         "Genus" = "genus",
+         "Species" = "species",
+         "ID" = "id",
+         "Agei" = "agei",
+         "Ri" = "radi",
+         "Agecpt" = "agecap",
+         "Rcpt" = "radcap",
+         "Lcpt" = "lencap",
+         "L0p" = "l0p",
+         "R0p" = "r0p",
+         "Li" = "li",
+         "Biomass" = "biomass",
+         "Location" = "location",
+         "Observer" = "observer") # Rename all variables following the standards of growth models
 
 # 7. Export data ----
 

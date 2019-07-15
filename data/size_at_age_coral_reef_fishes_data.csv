@@ -1,4 +1,4 @@
-"family","genus","species","id","agei","radi","agecap","radcap","lencap","l0p","r0p","li","biomass","location","observer"
+"Family","Genus","Species","ID","Agei","Ri","Agecpt","Rcpt","Lcpt","L0p","R0p","Li","Biomass","Location","Observer"
 "Pomacentridae","Abudefduf","Abudefduf sexfasciatus","AB_SE_MO_03_16_001",0,0.02912044,2,0.286661047,64.067,3.05,0.0278418561666667,3.05,3.9,"Moorea","Fabien Morat"
 "Pomacentridae","Abudefduf","Abudefduf sexfasciatus","AB_SE_MO_03_16_001",1,0.219125535,2,0.286661047,64.067,3.05,0.0278418561666667,48.1345656947608,3.9,"Moorea","Fabien Morat"
 "Pomacentridae","Abudefduf","Abudefduf sexfasciatus","AB_SE_MO_03_16_001",2,0.260718803,2,0.286661047,64.067,3.05,0.0278418561666667,57.9463667590338,3.9,"Moorea","Fabien Morat"

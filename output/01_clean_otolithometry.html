@@ -2039,11 +2039,26 @@ div.tocify {
 <a class="sourceLine" id="cb6-121" title="121"><span class="co"># 6. Re order variables ----</span></a>
 <a class="sourceLine" id="cb6-122" title="122"></a>
 <a class="sourceLine" id="cb6-123" title="123">data_complete &lt;-<span class="st"> </span>data_complete <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb6-124" title="124"><span class="st">  </span><span class="kw">select</span>(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, r0p, li, biomass, location, observer)</a>
-<a class="sourceLine" id="cb6-125" title="125"></a>
-<a class="sourceLine" id="cb6-126" title="126"><span class="co"># 7. Export data ----</span></a>
-<a class="sourceLine" id="cb6-127" title="127"></a>
-<a class="sourceLine" id="cb6-128" title="128"><span class="kw">write.csv</span>(data_complete, <span class="st">&quot;./../data/size_at_age_coral_reef_fishes_data.csv&quot;</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb6-124" title="124"><span class="st">  </span><span class="kw">select</span>(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, r0p, li, biomass, location, observer) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb6-125" title="125"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;Family&quot;</span> =<span class="st"> &quot;family&quot;</span>,</a>
+<a class="sourceLine" id="cb6-126" title="126">         <span class="st">&quot;Genus&quot;</span> =<span class="st"> &quot;genus&quot;</span>,</a>
+<a class="sourceLine" id="cb6-127" title="127">         <span class="st">&quot;Species&quot;</span> =<span class="st"> &quot;species&quot;</span>,</a>
+<a class="sourceLine" id="cb6-128" title="128">         <span class="st">&quot;ID&quot;</span> =<span class="st"> &quot;id&quot;</span>,</a>
+<a class="sourceLine" id="cb6-129" title="129">         <span class="st">&quot;Agei&quot;</span> =<span class="st"> &quot;agei&quot;</span>,</a>
+<a class="sourceLine" id="cb6-130" title="130">         <span class="st">&quot;Ri&quot;</span> =<span class="st"> &quot;radi&quot;</span>,</a>
+<a class="sourceLine" id="cb6-131" title="131">         <span class="st">&quot;Agecpt&quot;</span> =<span class="st"> &quot;agecap&quot;</span>,</a>
+<a class="sourceLine" id="cb6-132" title="132">         <span class="st">&quot;Rcpt&quot;</span> =<span class="st"> &quot;radcap&quot;</span>,</a>
+<a class="sourceLine" id="cb6-133" title="133">         <span class="st">&quot;Lcpt&quot;</span> =<span class="st"> &quot;lencap&quot;</span>,</a>
+<a class="sourceLine" id="cb6-134" title="134">         <span class="st">&quot;L0p&quot;</span> =<span class="st"> &quot;l0p&quot;</span>,</a>
+<a class="sourceLine" id="cb6-135" title="135">         <span class="st">&quot;R0p&quot;</span> =<span class="st"> &quot;r0p&quot;</span>,</a>
+<a class="sourceLine" id="cb6-136" title="136">         <span class="st">&quot;Li&quot;</span> =<span class="st"> &quot;li&quot;</span>,</a>
+<a class="sourceLine" id="cb6-137" title="137">         <span class="st">&quot;Biomass&quot;</span> =<span class="st"> &quot;biomass&quot;</span>,</a>
+<a class="sourceLine" id="cb6-138" title="138">         <span class="st">&quot;Location&quot;</span> =<span class="st"> &quot;location&quot;</span>,</a>
+<a class="sourceLine" id="cb6-139" title="139">         <span class="st">&quot;Observer&quot;</span> =<span class="st"> &quot;observer&quot;</span>) <span class="co"># Rename all variables following the standards of growth models</span></a>
+<a class="sourceLine" id="cb6-140" title="140"></a>
+<a class="sourceLine" id="cb6-141" title="141"><span class="co"># 7. Export data ----</span></a>
+<a class="sourceLine" id="cb6-142" title="142"></a>
+<a class="sourceLine" id="cb6-143" title="143"><span class="kw">write.csv</span>(data_complete, <span class="st">&quot;./../data/size_at_age_coral_reef_fishes_data.csv&quot;</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
 </div>
 <div id="reproducibility" class="section level1">
 <h1>Reproducibility</h1>
@@ -2077,7 +2092,7 @@ div.tocify {
 ## [21] rmarkdown_1.13   stringi_1.4.3    compiler_3.6.0   pillar_1.4.1    
 ## [25] pkgconfig_2.0.2</code></pre>
 <hr />
-<p>Jeremy WICQUART | <a href="mailto:jeremywicquart@gmail.com" class="email">jeremywicquart@gmail.com</a> | 2019-07-15 13:30:41</p>
+<p>Jeremy WICQUART | <a href="mailto:jeremywicquart@gmail.com" class="email">jeremywicquart@gmail.com</a> | 2019-07-15 15:11:01</p>
 </div>
 
 
