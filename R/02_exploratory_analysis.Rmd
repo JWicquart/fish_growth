@@ -15,7 +15,7 @@ output:
 
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FALSE, warning = FALSE, fig.align = "center")
 
 ```
 
@@ -40,6 +40,7 @@ library(ggplot2)
 library(kableExtra)
 library(data.table)
 library(formattable)
+library(plotly)
 
 # Set theme_perso() as the default ggplot theme
 theme_set(theme_graph())
@@ -208,6 +209,24 @@ data_complete %>%
   t(.) %>% 
   as.data.frame() %>% 
   rename("NA" = "V1")
+
+```
+
+# Abberant trajectories 
+
+```{r fig.height=4, fig.width=6}
+
+# 1. Plotly for Acanthurus lineatus ---- 
+
+data_complete %>% 
+  filter(Species == "Acanthurus lineatus") %>% 
+  plot_ly(., x = ~Agei, y = ~Li, text = ~paste("ID:", ID))
+
+# 2. Plotly for Lutjanus kasmira ---- 
+
+data_complete %>% 
+  filter(Species == "Lutjanus kasmira") %>% 
+  plot_ly(., x = ~Agei, y = ~Li, text = ~paste("ID:", ID))
 
 ```
 
