@@ -140,6 +140,8 @@ data_morphometry_reefservices <- read.csv("./../data/morphometry/01-raw_otolith_
 
 # 2. Gambier data ----
 
+# 2.1 Main modifications --
+
 data_morphometry_gambier <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_gambier.csv", sep = ";") %>% 
   select(Names, Species, TL_cm, SL_cm, Masse..g.) %>% 
   mutate(TL_cm = TL_cm*10,
@@ -149,9 +151,12 @@ data_morphometry_gambier <- read.csv("./../data/morphometry/01-raw_otolith_morph
          "total_length" = "TL_cm",
          "standard_length" = "SL_cm",
          "biomass" = "Masse..g.") %>% 
-  mutate(location = "Gambiers") # Add location
+  mutate(total_length = ifelse(id == "GAM18_B039", 426.4, total_length), # add the TL for GAM18_B039*
+         location = "Gambiers") # Add location
 
-# Estimate the total length for Naso unicornis*
+# *: missing in the data because the caudal fin was folded but estimated by fabien on photography
+
+# 2.2 Estimate the total length for Naso unicornis* --
 
 data_morphometry_gambier_naso <- data_morphometry_gambier %>% 
   filter(species == "Naso_unicornis") %>% 
@@ -169,6 +174,8 @@ data_morphometry_gambier <- data_morphometry_gambier %>%
 
 # 3. Marquesas data #1 ----
 
+# 3.1 Main modifications --
+
 data_morphometry_marquesas1 <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_marquesas-1.csv", sep = ";") %>% 
   select(ID, species, TL_cm, SL_cm, biomass, comments) %>% 
   mutate(biom_unusable = grepl("masse unusable", comments)) %>% # Check if biomass is usable or not (in the comments variable)
@@ -180,6 +187,22 @@ data_morphometry_marquesas1 <- read.csv("./../data/morphometry/01-raw_otolith_mo
          "total_length" = "TL_cm",
          "standard_length" = "SL_cm") %>% 
   mutate(location = "Marquesas") # Add location
+
+# 3.2 Estimate the total length for Pristiapogon taeniopterus* --
+
+data_morphometry_marquesas1_priasti <- data_morphometry_marquesas1 %>% 
+  filter(species == "Pristiapogon_taeniopterus") %>% 
+  mutate(ratio = total_length/standard_length) %>% 
+  mutate(ratio = mean(ratio, na.rm = TRUE)) %>% 
+  mutate(total_length = ifelse(is.na(total_length), standard_length*ratio, total_length))
+
+data_morphometry_marquesas1 <- data_morphometry_marquesas1 %>% 
+  filter(species != "Pristiapogon_taeniopterus") %>% 
+  bind_rows(., data_morphometry_marquesas1_priasti)
+
+# * the photographs doesn't include the caudal fin so total length is missing for 1 Pristiapogon taeniopterus
+# -> estimate the total length from the ratio total length/standard length through available data
+# of the 18 other Pristiapogon taeniopterus
 
 # 4. Marquesas data #2 ----
 

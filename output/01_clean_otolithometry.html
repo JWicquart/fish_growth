@@ -11,7 +11,7 @@
 
 <meta name="author" content="Jeremy Wicquart" />
 
-<meta name="date" content="2019-07-14" />
+<meta name="date" content="2019-07-15" />
 
 <title>Clean and merge data</title>
 
@@ -1625,7 +1625,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Clean and merge data</h1>
 <h4 class="author">Jeremy Wicquart</h4>
-<h4 class="date">2019-07-14</h4>
+<h4 class="date">2019-07-15</h4>
 
 </div>
 
@@ -1801,95 +1801,118 @@ div.tocify {
 <a class="sourceLine" id="cb5-14" title="14"></a>
 <a class="sourceLine" id="cb5-15" title="15"><span class="co"># 2. Gambier data ----</span></a>
 <a class="sourceLine" id="cb5-16" title="16"></a>
-<a class="sourceLine" id="cb5-17" title="17">data_morphometry_gambier &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/01-raw_otolith_morphometry_gambier.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;;&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-18" title="18"><span class="st">  </span><span class="kw">select</span>(Names, Species, TL_cm, SL_cm, Masse..g.) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-19" title="19"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">TL_cm =</span> TL_cm<span class="op">*</span><span class="dv">10</span>,</a>
-<a class="sourceLine" id="cb5-20" title="20">         <span class="dt">SL_cm =</span> SL_cm<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Convert total and standard length from cm to mm</span></a>
-<a class="sourceLine" id="cb5-21" title="21"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;id&quot;</span> =<span class="st"> &quot;Names&quot;</span>,</a>
-<a class="sourceLine" id="cb5-22" title="22">         <span class="st">&quot;species&quot;</span> =<span class="st"> &quot;Species&quot;</span>,</a>
-<a class="sourceLine" id="cb5-23" title="23">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;TL_cm&quot;</span>,</a>
-<a class="sourceLine" id="cb5-24" title="24">         <span class="st">&quot;standard_length&quot;</span> =<span class="st"> &quot;SL_cm&quot;</span>,</a>
-<a class="sourceLine" id="cb5-25" title="25">         <span class="st">&quot;biomass&quot;</span> =<span class="st"> &quot;Masse..g.&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-26" title="26"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">location =</span> <span class="st">&quot;Gambiers&quot;</span>) <span class="co"># Add location</span></a>
-<a class="sourceLine" id="cb5-27" title="27"></a>
-<a class="sourceLine" id="cb5-28" title="28"><span class="co"># Estimate the total length for Naso unicornis*</span></a>
-<a class="sourceLine" id="cb5-29" title="29"></a>
-<a class="sourceLine" id="cb5-30" title="30">data_morphometry_gambier_naso &lt;-<span class="st"> </span>data_morphometry_gambier <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-31" title="31"><span class="st">  </span><span class="kw">filter</span>(species <span class="op">==</span><span class="st"> &quot;Naso_unicornis&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-32" title="32"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ratio =</span> total_length<span class="op">/</span>standard_length) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-33" title="33"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ratio =</span> <span class="kw">mean</span>(ratio, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-34" title="34"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">total_length =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(total_length), standard_length<span class="op">*</span>ratio, total_length))</a>
-<a class="sourceLine" id="cb5-35" title="35"></a>
-<a class="sourceLine" id="cb5-36" title="36">data_morphometry_gambier &lt;-<span class="st"> </span>data_morphometry_gambier <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-37" title="37"><span class="st">  </span><span class="kw">filter</span>(species <span class="op">!=</span><span class="st"> &quot;Naso_unicornis&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-38" title="38"><span class="st">  </span><span class="kw">bind_rows</span>(., data_morphometry_gambier_naso)</a>
-<a class="sourceLine" id="cb5-39" title="39"></a>
-<a class="sourceLine" id="cb5-40" title="40"><span class="co"># * the photographs doesn&#39;t include the caudal fin so total length is missing for 2 Naso unicornis</span></a>
-<a class="sourceLine" id="cb5-41" title="41"><span class="co"># -&gt; estimate the total length from the ratio total length/standard length through available data</span></a>
-<a class="sourceLine" id="cb5-42" title="42"><span class="co"># of the 2 other Naso unicornis</span></a>
-<a class="sourceLine" id="cb5-43" title="43"></a>
-<a class="sourceLine" id="cb5-44" title="44"><span class="co"># 3. Marquesas data #1 ----</span></a>
-<a class="sourceLine" id="cb5-45" title="45"></a>
-<a class="sourceLine" id="cb5-46" title="46">data_morphometry_marquesas1 &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/01-raw_otolith_morphometry_marquesas-1.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;;&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-47" title="47"><span class="st">  </span><span class="kw">select</span>(ID, species, TL_cm, SL_cm, biomass, comments) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-48" title="48"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">biom_unusable =</span> <span class="kw">grepl</span>(<span class="st">&quot;masse unusable&quot;</span>, comments)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Check if biomass is usable or not (in the comments variable)</span></a>
-<a class="sourceLine" id="cb5-49" title="49"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">biomass =</span> <span class="kw">ifelse</span>(biom_unusable <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>, <span class="ot">NA</span>, biomass)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># If biomass is unusable then change value of biomass by NA</span></a>
-<a class="sourceLine" id="cb5-50" title="50"><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>comments, <span class="op">-</span>biom_unusable) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-51" title="51"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">TL_cm =</span> TL_cm<span class="op">*</span><span class="dv">10</span>,</a>
-<a class="sourceLine" id="cb5-52" title="52">         <span class="dt">SL_cm =</span> SL_cm<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Convert total and standard length from cm to mm</span></a>
-<a class="sourceLine" id="cb5-53" title="53"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;id&quot;</span> =<span class="st"> &quot;ID&quot;</span>,</a>
-<a class="sourceLine" id="cb5-54" title="54">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;TL_cm&quot;</span>,</a>
-<a class="sourceLine" id="cb5-55" title="55">         <span class="st">&quot;standard_length&quot;</span> =<span class="st"> &quot;SL_cm&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-56" title="56"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">location =</span> <span class="st">&quot;Marquesas&quot;</span>) <span class="co"># Add location</span></a>
-<a class="sourceLine" id="cb5-57" title="57"></a>
-<a class="sourceLine" id="cb5-58" title="58"><span class="co"># 4. Marquesas data #2 ----</span></a>
-<a class="sourceLine" id="cb5-59" title="59"></a>
-<a class="sourceLine" id="cb5-60" title="60">data_morphometry_marquesas2 &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/01-raw_otolith_morphometry_marquesas-2.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;;&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-61" title="61"><span class="st">  </span><span class="kw">select</span>(ID, species, TL.cm, SL, biomass, comments) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-62" title="62"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">biom_unusable =</span> <span class="kw">grepl</span>(<span class="st">&quot;masse inutilisable&quot;</span>, comments)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Check if biomass is usable or not (in the comments variable)</span></a>
-<a class="sourceLine" id="cb5-63" title="63"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">biomass =</span> <span class="kw">ifelse</span>(biom_unusable <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>, <span class="ot">NA</span>, biomass)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># If biomass is unusable then change value of biomass by NA</span></a>
-<a class="sourceLine" id="cb5-64" title="64"><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>comments, <span class="op">-</span>biom_unusable) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-65" title="65"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">TL.cm =</span> TL.cm<span class="op">*</span><span class="dv">10</span>,</a>
-<a class="sourceLine" id="cb5-66" title="66">         <span class="dt">SL =</span> SL<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Convert total and standard length from cm to mm</span></a>
-<a class="sourceLine" id="cb5-67" title="67"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;id&quot;</span> =<span class="st"> &quot;ID&quot;</span>,</a>
-<a class="sourceLine" id="cb5-68" title="68">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;TL.cm&quot;</span>,</a>
-<a class="sourceLine" id="cb5-69" title="69">         <span class="st">&quot;standard_length&quot;</span> =<span class="st"> &quot;SL&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-70" title="70"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">location =</span> <span class="st">&quot;Marquesas&quot;</span>) <span class="co"># Add location</span></a>
-<a class="sourceLine" id="cb5-71" title="71"></a>
-<a class="sourceLine" id="cb5-72" title="72"><span class="co"># 5. Hao data ----</span></a>
-<a class="sourceLine" id="cb5-73" title="73"></a>
-<a class="sourceLine" id="cb5-74" title="74">data_morphometry_hao &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/01-raw_otolith_morphometry_hao.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;;&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-75" title="75"><span class="st">  </span><span class="kw">select</span>(Code.fish, Espèce.Fish, Poids.Pt.en.g, Taille.Lt.en.mm) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-76" title="76"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;id&quot;</span> =<span class="st"> &quot;Code.fish&quot;</span>,</a>
-<a class="sourceLine" id="cb5-77" title="77">         <span class="st">&quot;species&quot;</span> =<span class="st"> &quot;Espèce.Fish&quot;</span>,</a>
-<a class="sourceLine" id="cb5-78" title="78">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;Taille.Lt.en.mm&quot;</span>,</a>
-<a class="sourceLine" id="cb5-79" title="79">         <span class="st">&quot;biomass&quot;</span> =<span class="st"> &quot;Poids.Pt.en.g&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-80" title="80"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">location =</span> <span class="st">&quot;Hao&quot;</span>) <span class="co"># Add location</span></a>
-<a class="sourceLine" id="cb5-81" title="81"></a>
-<a class="sourceLine" id="cb5-82" title="82"><span class="co"># 6. MOOFE data (Nina dissections) ----</span></a>
-<a class="sourceLine" id="cb5-83" title="83"></a>
-<a class="sourceLine" id="cb5-84" title="84">data_morphometry_moofe &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/MOOFE_dissections.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;,&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-85" title="85"><span class="st">  </span><span class="kw">select</span>(ID, Location, Genus, Species, TL, SL, Weight) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-86" title="86"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">species =</span> <span class="kw">paste</span>(Genus, Species),</a>
-<a class="sourceLine" id="cb5-87" title="87">         <span class="dt">TL =</span> TL<span class="op">*</span><span class="dv">10</span>,</a>
-<a class="sourceLine" id="cb5-88" title="88">         <span class="dt">SL =</span> SL<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-89" title="89"><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>Genus, <span class="op">-</span>Species) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-17" title="17"><span class="co"># 2.1 Main modifications --</span></a>
+<a class="sourceLine" id="cb5-18" title="18"></a>
+<a class="sourceLine" id="cb5-19" title="19">data_morphometry_gambier &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/01-raw_otolith_morphometry_gambier.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;;&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-20" title="20"><span class="st">  </span><span class="kw">select</span>(Names, Species, TL_cm, SL_cm, Masse..g.) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-21" title="21"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">TL_cm =</span> TL_cm<span class="op">*</span><span class="dv">10</span>,</a>
+<a class="sourceLine" id="cb5-22" title="22">         <span class="dt">SL_cm =</span> SL_cm<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Convert total and standard length from cm to mm</span></a>
+<a class="sourceLine" id="cb5-23" title="23"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;id&quot;</span> =<span class="st"> &quot;Names&quot;</span>,</a>
+<a class="sourceLine" id="cb5-24" title="24">         <span class="st">&quot;species&quot;</span> =<span class="st"> &quot;Species&quot;</span>,</a>
+<a class="sourceLine" id="cb5-25" title="25">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;TL_cm&quot;</span>,</a>
+<a class="sourceLine" id="cb5-26" title="26">         <span class="st">&quot;standard_length&quot;</span> =<span class="st"> &quot;SL_cm&quot;</span>,</a>
+<a class="sourceLine" id="cb5-27" title="27">         <span class="st">&quot;biomass&quot;</span> =<span class="st"> &quot;Masse..g.&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-28" title="28"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">total_length =</span> <span class="kw">ifelse</span>(id <span class="op">==</span><span class="st"> &quot;GAM18_B039&quot;</span>, <span class="fl">426.4</span>, total_length), <span class="co"># add the TL for GAM18_B039*</span></a>
+<a class="sourceLine" id="cb5-29" title="29">         <span class="dt">location =</span> <span class="st">&quot;Gambiers&quot;</span>) <span class="co"># Add location</span></a>
+<a class="sourceLine" id="cb5-30" title="30"></a>
+<a class="sourceLine" id="cb5-31" title="31"><span class="co"># *: missing in the data because the caudal fin was folded but estimated by fabien on photography</span></a>
+<a class="sourceLine" id="cb5-32" title="32"></a>
+<a class="sourceLine" id="cb5-33" title="33"><span class="co"># 2.2 Estimate the total length for Naso unicornis* --</span></a>
+<a class="sourceLine" id="cb5-34" title="34"></a>
+<a class="sourceLine" id="cb5-35" title="35">data_morphometry_gambier_naso &lt;-<span class="st"> </span>data_morphometry_gambier <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-36" title="36"><span class="st">  </span><span class="kw">filter</span>(species <span class="op">==</span><span class="st"> &quot;Naso_unicornis&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-37" title="37"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ratio =</span> total_length<span class="op">/</span>standard_length) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-38" title="38"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ratio =</span> <span class="kw">mean</span>(ratio, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-39" title="39"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">total_length =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(total_length), standard_length<span class="op">*</span>ratio, total_length))</a>
+<a class="sourceLine" id="cb5-40" title="40"></a>
+<a class="sourceLine" id="cb5-41" title="41">data_morphometry_gambier &lt;-<span class="st"> </span>data_morphometry_gambier <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-42" title="42"><span class="st">  </span><span class="kw">filter</span>(species <span class="op">!=</span><span class="st"> &quot;Naso_unicornis&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-43" title="43"><span class="st">  </span><span class="kw">bind_rows</span>(., data_morphometry_gambier_naso)</a>
+<a class="sourceLine" id="cb5-44" title="44"></a>
+<a class="sourceLine" id="cb5-45" title="45"><span class="co"># * the photographs doesn&#39;t include the caudal fin so total length is missing for 2 Naso unicornis</span></a>
+<a class="sourceLine" id="cb5-46" title="46"><span class="co"># -&gt; estimate the total length from the ratio total length/standard length through available data</span></a>
+<a class="sourceLine" id="cb5-47" title="47"><span class="co"># of the 2 other Naso unicornis</span></a>
+<a class="sourceLine" id="cb5-48" title="48"></a>
+<a class="sourceLine" id="cb5-49" title="49"><span class="co"># 3. Marquesas data #1 ----</span></a>
+<a class="sourceLine" id="cb5-50" title="50"></a>
+<a class="sourceLine" id="cb5-51" title="51"><span class="co"># 3.1 Main modifications --</span></a>
+<a class="sourceLine" id="cb5-52" title="52"></a>
+<a class="sourceLine" id="cb5-53" title="53">data_morphometry_marquesas1 &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/01-raw_otolith_morphometry_marquesas-1.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;;&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-54" title="54"><span class="st">  </span><span class="kw">select</span>(ID, species, TL_cm, SL_cm, biomass, comments) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-55" title="55"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">biom_unusable =</span> <span class="kw">grepl</span>(<span class="st">&quot;masse unusable&quot;</span>, comments)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Check if biomass is usable or not (in the comments variable)</span></a>
+<a class="sourceLine" id="cb5-56" title="56"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">biomass =</span> <span class="kw">ifelse</span>(biom_unusable <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>, <span class="ot">NA</span>, biomass)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># If biomass is unusable then change value of biomass by NA</span></a>
+<a class="sourceLine" id="cb5-57" title="57"><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>comments, <span class="op">-</span>biom_unusable) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-58" title="58"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">TL_cm =</span> TL_cm<span class="op">*</span><span class="dv">10</span>,</a>
+<a class="sourceLine" id="cb5-59" title="59">         <span class="dt">SL_cm =</span> SL_cm<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Convert total and standard length from cm to mm</span></a>
+<a class="sourceLine" id="cb5-60" title="60"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;id&quot;</span> =<span class="st"> &quot;ID&quot;</span>,</a>
+<a class="sourceLine" id="cb5-61" title="61">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;TL_cm&quot;</span>,</a>
+<a class="sourceLine" id="cb5-62" title="62">         <span class="st">&quot;standard_length&quot;</span> =<span class="st"> &quot;SL_cm&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-63" title="63"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">location =</span> <span class="st">&quot;Marquesas&quot;</span>) <span class="co"># Add location</span></a>
+<a class="sourceLine" id="cb5-64" title="64"></a>
+<a class="sourceLine" id="cb5-65" title="65"><span class="co"># 3.2 Estimate the total length for Pristiapogon taeniopterus* --</span></a>
+<a class="sourceLine" id="cb5-66" title="66"></a>
+<a class="sourceLine" id="cb5-67" title="67">data_morphometry_marquesas1_priasti &lt;-<span class="st"> </span>data_morphometry_marquesas1 <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-68" title="68"><span class="st">  </span><span class="kw">filter</span>(species <span class="op">==</span><span class="st"> &quot;Pristiapogon_taeniopterus&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-69" title="69"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ratio =</span> total_length<span class="op">/</span>standard_length) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-70" title="70"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">ratio =</span> <span class="kw">mean</span>(ratio, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-71" title="71"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">total_length =</span> <span class="kw">ifelse</span>(<span class="kw">is.na</span>(total_length), standard_length<span class="op">*</span>ratio, total_length))</a>
+<a class="sourceLine" id="cb5-72" title="72"></a>
+<a class="sourceLine" id="cb5-73" title="73">data_morphometry_marquesas1 &lt;-<span class="st"> </span>data_morphometry_marquesas1 <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-74" title="74"><span class="st">  </span><span class="kw">filter</span>(species <span class="op">!=</span><span class="st"> &quot;Pristiapogon_taeniopterus&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-75" title="75"><span class="st">  </span><span class="kw">bind_rows</span>(., data_morphometry_marquesas1_priasti)</a>
+<a class="sourceLine" id="cb5-76" title="76"></a>
+<a class="sourceLine" id="cb5-77" title="77"><span class="co"># * the photographs doesn&#39;t include the caudal fin so total length is missing for 1 Pristiapogon taeniopterus</span></a>
+<a class="sourceLine" id="cb5-78" title="78"><span class="co"># -&gt; estimate the total length from the ratio total length/standard length through available data</span></a>
+<a class="sourceLine" id="cb5-79" title="79"><span class="co"># of the 18 other Pristiapogon taeniopterus</span></a>
+<a class="sourceLine" id="cb5-80" title="80"></a>
+<a class="sourceLine" id="cb5-81" title="81"><span class="co"># 4. Marquesas data #2 ----</span></a>
+<a class="sourceLine" id="cb5-82" title="82"></a>
+<a class="sourceLine" id="cb5-83" title="83">data_morphometry_marquesas2 &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/01-raw_otolith_morphometry_marquesas-2.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;;&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-84" title="84"><span class="st">  </span><span class="kw">select</span>(ID, species, TL.cm, SL, biomass, comments) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-85" title="85"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">biom_unusable =</span> <span class="kw">grepl</span>(<span class="st">&quot;masse inutilisable&quot;</span>, comments)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Check if biomass is usable or not (in the comments variable)</span></a>
+<a class="sourceLine" id="cb5-86" title="86"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">biomass =</span> <span class="kw">ifelse</span>(biom_unusable <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>, <span class="ot">NA</span>, biomass)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># If biomass is unusable then change value of biomass by NA</span></a>
+<a class="sourceLine" id="cb5-87" title="87"><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>comments, <span class="op">-</span>biom_unusable) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-88" title="88"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">TL.cm =</span> TL.cm<span class="op">*</span><span class="dv">10</span>,</a>
+<a class="sourceLine" id="cb5-89" title="89">         <span class="dt">SL =</span> SL<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Convert total and standard length from cm to mm</span></a>
 <a class="sourceLine" id="cb5-90" title="90"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;id&quot;</span> =<span class="st"> &quot;ID&quot;</span>,</a>
-<a class="sourceLine" id="cb5-91" title="91">         <span class="st">&quot;location&quot;</span> =<span class="st"> &quot;Location&quot;</span>,</a>
-<a class="sourceLine" id="cb5-92" title="92">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;TL&quot;</span>,</a>
-<a class="sourceLine" id="cb5-93" title="93">         <span class="st">&quot;standard_length&quot;</span> =<span class="st"> &quot;SL&quot;</span>,</a>
-<a class="sourceLine" id="cb5-94" title="94">         <span class="st">&quot;biomass&quot;</span> =<span class="st"> &quot;Weight&quot;</span>)</a>
-<a class="sourceLine" id="cb5-95" title="95"></a>
-<a class="sourceLine" id="cb5-96" title="96"><span class="co"># 7. Bind files ----</span></a>
-<a class="sourceLine" id="cb5-97" title="97"></a>
-<a class="sourceLine" id="cb5-98" title="98">data_morphometry &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(data_morphometry_gambier, data_morphometry_marquesas1, </a>
-<a class="sourceLine" id="cb5-99" title="99">                              data_morphometry_marquesas2, data_morphometry_reefservices,</a>
-<a class="sourceLine" id="cb5-100" title="100">                              data_morphometry_hao, data_morphometry_moofe) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-101" title="101"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">species =</span> <span class="kw">firstup</span>(species)) <span class="co"># First letter of genus in uppercase</span></a>
-<a class="sourceLine" id="cb5-102" title="102"></a>
-<a class="sourceLine" id="cb5-103" title="103"><span class="kw">rm</span>(data_morphometry_gambier, data_morphometry_marquesas1, </a>
-<a class="sourceLine" id="cb5-104" title="104">   data_morphometry_marquesas2, data_morphometry_reefservices,</a>
-<a class="sourceLine" id="cb5-105" title="105">   data_morphometry_hao, data_morphometry_moofe, data_morphometry_gambier_naso)</a></code></pre></div>
+<a class="sourceLine" id="cb5-91" title="91">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;TL.cm&quot;</span>,</a>
+<a class="sourceLine" id="cb5-92" title="92">         <span class="st">&quot;standard_length&quot;</span> =<span class="st"> &quot;SL&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-93" title="93"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">location =</span> <span class="st">&quot;Marquesas&quot;</span>) <span class="co"># Add location</span></a>
+<a class="sourceLine" id="cb5-94" title="94"></a>
+<a class="sourceLine" id="cb5-95" title="95"><span class="co"># 5. Hao data ----</span></a>
+<a class="sourceLine" id="cb5-96" title="96"></a>
+<a class="sourceLine" id="cb5-97" title="97">data_morphometry_hao &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/01-raw_otolith_morphometry_hao.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;;&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-98" title="98"><span class="st">  </span><span class="kw">select</span>(Code.fish, Espèce.Fish, Poids.Pt.en.g, Taille.Lt.en.mm) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-99" title="99"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;id&quot;</span> =<span class="st"> &quot;Code.fish&quot;</span>,</a>
+<a class="sourceLine" id="cb5-100" title="100">         <span class="st">&quot;species&quot;</span> =<span class="st"> &quot;Espèce.Fish&quot;</span>,</a>
+<a class="sourceLine" id="cb5-101" title="101">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;Taille.Lt.en.mm&quot;</span>,</a>
+<a class="sourceLine" id="cb5-102" title="102">         <span class="st">&quot;biomass&quot;</span> =<span class="st"> &quot;Poids.Pt.en.g&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-103" title="103"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">location =</span> <span class="st">&quot;Hao&quot;</span>) <span class="co"># Add location</span></a>
+<a class="sourceLine" id="cb5-104" title="104"></a>
+<a class="sourceLine" id="cb5-105" title="105"><span class="co"># 6. MOOFE data (Nina dissections) ----</span></a>
+<a class="sourceLine" id="cb5-106" title="106"></a>
+<a class="sourceLine" id="cb5-107" title="107">data_morphometry_moofe &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;./../data/morphometry/MOOFE_dissections.csv&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;,&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-108" title="108"><span class="st">  </span><span class="kw">select</span>(ID, Location, Genus, Species, TL, SL, Weight) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-109" title="109"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">species =</span> <span class="kw">paste</span>(Genus, Species),</a>
+<a class="sourceLine" id="cb5-110" title="110">         <span class="dt">TL =</span> TL<span class="op">*</span><span class="dv">10</span>,</a>
+<a class="sourceLine" id="cb5-111" title="111">         <span class="dt">SL =</span> SL<span class="op">*</span><span class="dv">10</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-112" title="112"><span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>Genus, <span class="op">-</span>Species) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-113" title="113"><span class="st">  </span><span class="kw">rename</span>(<span class="st">&quot;id&quot;</span> =<span class="st"> &quot;ID&quot;</span>,</a>
+<a class="sourceLine" id="cb5-114" title="114">         <span class="st">&quot;location&quot;</span> =<span class="st"> &quot;Location&quot;</span>,</a>
+<a class="sourceLine" id="cb5-115" title="115">         <span class="st">&quot;total_length&quot;</span> =<span class="st"> &quot;TL&quot;</span>,</a>
+<a class="sourceLine" id="cb5-116" title="116">         <span class="st">&quot;standard_length&quot;</span> =<span class="st"> &quot;SL&quot;</span>,</a>
+<a class="sourceLine" id="cb5-117" title="117">         <span class="st">&quot;biomass&quot;</span> =<span class="st"> &quot;Weight&quot;</span>)</a>
+<a class="sourceLine" id="cb5-118" title="118"></a>
+<a class="sourceLine" id="cb5-119" title="119"><span class="co"># 7. Bind files ----</span></a>
+<a class="sourceLine" id="cb5-120" title="120"></a>
+<a class="sourceLine" id="cb5-121" title="121">data_morphometry &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(data_morphometry_gambier, data_morphometry_marquesas1, </a>
+<a class="sourceLine" id="cb5-122" title="122">                              data_morphometry_marquesas2, data_morphometry_reefservices,</a>
+<a class="sourceLine" id="cb5-123" title="123">                              data_morphometry_hao, data_morphometry_moofe) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb5-124" title="124"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">species =</span> <span class="kw">firstup</span>(species)) <span class="co"># First letter of genus in uppercase</span></a>
+<a class="sourceLine" id="cb5-125" title="125"></a>
+<a class="sourceLine" id="cb5-126" title="126"><span class="kw">rm</span>(data_morphometry_gambier, data_morphometry_marquesas1, </a>
+<a class="sourceLine" id="cb5-127" title="127">   data_morphometry_marquesas2, data_morphometry_reefservices,</a>
+<a class="sourceLine" id="cb5-128" title="128">   data_morphometry_hao, data_morphometry_moofe, data_morphometry_gambier_naso)</a></code></pre></div>
 </div>
 <div id="merge" class="section level1">
 <h1>Merge</h1>
@@ -2054,7 +2077,7 @@ div.tocify {
 ## [21] rmarkdown_1.13   stringi_1.4.3    compiler_3.6.0   pillar_1.4.1    
 ## [25] pkgconfig_2.0.2</code></pre>
 <hr />
-<p>Jeremy WICQUART | <a href="mailto:jeremywicquart@gmail.com" class="email">jeremywicquart@gmail.com</a> | 2019-07-14 11:45:39</p>
+<p>Jeremy WICQUART | <a href="mailto:jeremywicquart@gmail.com" class="email">jeremywicquart@gmail.com</a> | 2019-07-15 13:30:41</p>
 </div>
 
 
