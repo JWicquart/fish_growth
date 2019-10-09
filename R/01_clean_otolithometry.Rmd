@@ -35,6 +35,7 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(rfishbase)
+library(rstan)
 
 ```
 
@@ -142,7 +143,7 @@ data_morphometry_reefservices <- read.csv("./../data/morphometry/01-raw_otolith_
 
 # 2.1 Main modifications --
 
-data_morphometry_gambier <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_gambier.csv", sep = ";") %>% 
+data_morphometry_gambier <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_gambier.csv") %>% 
   select(Names, Species, TL_cm, SL_cm, Masse..g.) %>% 
   mutate(TL_cm = TL_cm*10,
          SL_cm = SL_cm*10) %>% # Convert total and standard length from cm to mm
@@ -220,10 +221,10 @@ data_morphometry_marquesas2 <- read.csv("./../data/morphometry/01-raw_otolith_mo
 
 # 5. Hao data ----
 
-data_morphometry_hao <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_hao.csv", sep = ";") %>% 
-  select(Code.fish, Espèce.Fish, Poids.Pt.en.g, Taille.Lt.en.mm) %>% 
+data_morphometry_hao <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_hao.csv") %>% 
+  select(Code.fish, Espece.Fish, Poids.Pt.en.g, Taille.Lt.en.mm) %>% 
   rename("id" = "Code.fish",
-         "species" = "Espèce.Fish",
+         "species" = "Espece.Fish",
          "total_length" = "Taille.Lt.en.mm",
          "biomass" = "Poids.Pt.en.g") %>% 
   mutate(location = "Hao") # Add location
@@ -369,11 +370,37 @@ data_complete <- data_complete %>%
 
 rm(new_species_l0p, old_species_l0p)
 
+# 5. Bayesian back calculation
+
+# load stan model and load function
+bcalc_stan <- stan_model("./../stan/bcalc.stan")
+source("functions/bcalc_bayes.R")
+
+# apply to all species
+options <- unique(select(data_complete, location, species))
+
+bc_results <- 
+lapply(1:nrow(options), purrr::possibly(function(x){
+  print(x)
+  print(options[x,])
+  data <- dplyr::filter(data_complete, location == options[x, "location"], 
+                               species == options[x, "species"], agecap>1)
+  result <- bcalc_bayes(data)
+  return(result)
+}, otherwise = NA))
+
+bc_results1 <- bc_results[!is.na(bc_results)] %>% lapply(function(x){x$lengths})%>% plyr::ldply() %>% mutate(agei = age) %>% dplyr::select(-age)
+
+# merge
+data_complete <- left_join(data_complete, bc_results1)
+
 # 5. Make the back-calculation ----
 
 # 5.1 Back-calculation for each species --
 
 data_complete <- ddply(data_complete, .(species), function(x) backcalc(x))
+
+data_complete$l_diff <- abs(data_complete$l_m - data_complete$li) # >> in some cases quite different....
 
 # 5.2 Replacement of Li at age 0 by the value of L0p --
 
