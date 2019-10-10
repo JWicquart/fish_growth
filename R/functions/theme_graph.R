@@ -38,7 +38,7 @@ theme_graph <- function(base_size = 12, base_family = font_choose_graph, base_li
         legend.spacing.x = NULL, 
         legend.spacing.y = NULL, 
         legend.margin = margin(half_line, half_line, half_line, half_line), 
-        legend.key = element_rect(fill = "black", colour = "white"), 
+        legend.key = element_rect(fill = NA, colour = NA), 
         legend.key.size = unit(1.2, "lines"), 
         legend.key.height = NULL, 
         legend.key.width = NULL, 

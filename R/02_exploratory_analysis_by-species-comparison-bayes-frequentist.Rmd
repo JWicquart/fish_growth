@@ -1,0 +1,249 @@
+---
+title: "Exploratory analysis"
+author : "Jeremy Wicquart"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: "cosmo"
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FALSE, warning = FALSE, fig.align = "center")
+
+```
+
+# Defining functions and packages
+
+```{r base}
+
+# 1. Source functions ----
+
+source("functions/graphical_par.R")
+source("functions/theme_graph.R")
+source("functions/allometry.R")
+source("functions/firstup.R")
+
+# 2. Recquired packages ----
+
+library(stringr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(kableExtra)
+library(data.table)
+library(formattable)
+library(plotly)
+
+# Set theme_perso() as the default ggplot theme
+theme_set(theme_graph())
+
+# 3. Load data ----
+
+data_complete <- read.csv("./../data/size_at_age_coral_reef_fishes_data_by-species.csv")
+
+```
+
+# Summary
+
+```{r}
+
+# 1 Summary ----
+
+summary(data_complete)
+
+# 2. Total number of individuals ----
+
+length(unique(data_complete$ID))
+
+# 3 Total number of species ----
+
+length(unique(data_complete$Species))
+
+```
+
+# Individual by species
+
+```{r}
+
+data_complete %>%
+  ddply(., .(Species), summarize, n = length(unique(ID)),
+        min_lencap = round(min(Lcpt, na.rm = TRUE), 0),
+        max_lencap = round(max(Lcpt, na.rm = TRUE), 0)) %>% 
+  kable(., col.names = c("Species", "n", "Min length (TL, mm)", "Max length (TL, mm)")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, italic = T)
+
+```
+
+# Individuals by location
+
+```{r}
+
+data_complete %>%
+  ddply(., .(Species, Location), summarize, n = length(unique(ID))) %>% 
+  spread(., key = Location, value = n) %>% 
+  mutate(Gambiers = cell_spec(Gambiers, "html", color = ifelse(is.na(Gambiers), "white", "#446CB3")),
+         Hao = cell_spec(Hao, "html", color = ifelse(is.na(Hao), "white", "#446CB3")),
+         Marquesas = cell_spec(Marquesas, "html", color = ifelse(is.na(Marquesas), "white", "#446CB3")),
+         Moorea = cell_spec(Moorea, "html", color = ifelse(is.na(Moorea), "white", "#446CB3")),
+         Scilly = cell_spec(Scilly, "html", color = ifelse(is.na(Scilly), "white", "#446CB3")),
+         Tuamotu = cell_spec(Tuamotu, "html", color = ifelse(is.na(Tuamotu), "white", "#446CB3"))) %>% 
+  kable(., format = "html", escape = FALSE) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, italic = T)
+
+```
+
+# Agei *vs* Ri
+
+```{r}
+
+ggplot(data_complete, aes(x = Agei, y = Ri)) +
+  geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
+  theme(strip.text.x = element_text(size = 8, face = "italic"),
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black")) +
+  facet_wrap(~Species, scales = "free", ncol = 5) +
+  labs(x = "Age (years)", y = "Radius at age i (mm)", title = "Check for outliers", subtitle = "agei vs radi")
+
+```
+
+# Agei *vs* Li
+
+```{r}
+
+data_complete %>% 
+  gather(12:13, key = Method, value = Li) %>% 
+  mutate(Method = str_replace_all(Method, c("Li_freq" = "Frequentist",
+                                            "Li_bayes" = "Bayesian"))) %>% 
+  ggplot(., aes(x = Agei, y = Li, fill = Method)) +
+    geom_point(size = 1, shape = 21, alpha = 0.7)+
+    theme(strip.text.x = element_text(size = 8, face = "italic"),
+          strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+          plot.title = element_text(colour = col_color_graph),
+          plot.subtitle = element_text(colour = "black"),
+          legend.position = "top") +
+    facet_wrap(~Species, scales = "free", ncol = 5) +
+    labs(x = "Age (years)", y = "Length at age i (mm)", title = "Check for outliers", subtitle = "agei vs li")
+
+```
+
+# Biomass *vs* Lcpt
+
+```{r}
+
+# 1. Remove NA from data ----
+
+data_complete_na_rm <- data_complete %>% 
+  filter(!is.na(Biomass) & !is.na(Lcpt))
+
+# 2. Get the parameters of the allometric regression for each species ----
+
+coef_allo <- ddply(data_complete_na_rm, .(Species), function(x) allometry(data = x, xreg = "Lcpt", yreg = "Biomass", graph = FALSE))
+
+# 3. Generate predicted values ----
+
+pred_values <- ddply(data_complete_na_rm, .(Species), function(x) seq(0, max(x$Lcpt), length.out = 100)) %>% # Create new x
+               gather(., pos, xnew, -1) %>% # Gather multiple columns into two columns
+               select(Species, xnew) %>% # Delete useless column
+               arrange(Species) %>% # Sort DF by species
+               merge(., coef_allo, by = "Species") %>% # Merge the DF with parameters of allometric regression
+               mutate(ynew = a*xnew^b) # Calculate new y
+
+# 4. Plot ----
+
+ggplot() +
+  geom_line(data = pred_values, aes(x = xnew, y = ynew), color = col_color_graph) +
+  geom_point(data = data_complete, aes(x = Lcpt, y = Biomass), color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
+  theme(strip.text.x = element_text(size = 8, face = "italic"),
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black")) +
+  facet_wrap(~Species, scales = "free", ncol = 5) +
+  labs(x = "Length at capture (mm)", y = "Biomass at capture (g)", title = "Check for outliers", subtitle = "lencap vs biomass")
+
+```
+
+# Export table for Morat et al
+
+```{r}
+
+# 1. Get the type of each variable ---- 
+
+table_type <- data_complete %>% 
+  summarise_all(class) %>% 
+  gather(.) %>% 
+  rename(Variable = key, Type = value) %>% 
+  mutate(Type = firstup(Type), # First letter in uppercase
+         Column = 1:nrow(.)) # Add the numbering of the variable
+
+# 2. Get the range of each numeric variable ----
+
+table_range <- data_complete %>% 
+  summarise_if(is.numeric, ~paste(round(min(.x, na.rm = TRUE), digits = 3), 
+                                  round(max(.x, na.rm = TRUE), digits = 3), 
+                                  sep = " - ")) %>% 
+  gather(.) %>% 
+  rename(Variable = key, Range = value)
+
+# 4. Merge the three datasets and rename variables ----
+
+merge(table_type, table_range, by = "Variable", all.x = TRUE) %>% 
+  merge(., read.csv2("./../data/variables_description_for_Morat_et_al.csv"), by = "Variable", all.x = TRUE) %>% 
+  select(Column, Variable, Description, Unit, Type, Range) %>% 
+  arrange(Column) %>% 
+  write.csv2(., "./../data/variables_complete_for_Morat_et_al.csv", row.names = FALSE)
+  
+```
+
+# Number of NA by variable
+
+```{r}
+
+data_complete %>%
+  summarise_all(~(sum(is.na(.)))) %>% 
+  t(.) %>% 
+  as.data.frame() %>% 
+  rename("NA" = "V1")
+
+```
+
+# Abberant trajectories 
+
+```{r fig.height=4, fig.width=6}
+
+# 1. Plotly for Acanthurus lineatus ---- 
+
+data_complete %>% 
+  filter(Species == "Acanthurus lineatus") %>% 
+  plot_ly(., x = ~Agei, y = ~Li_bayes, text = ~paste("ID:", ID))
+
+# 2. Plotly for Lutjanus kasmira ---- 
+
+data_complete %>% 
+  filter(Species == "Lutjanus kasmira") %>% 
+  plot_ly(., x = ~Agei, y = ~Li_bayes, text = ~paste("ID:", ID))
+
+```
+
+# Reproducibility
+
+```{r reprod}
+
+# 1. Reproducibility ----
+
+sessionInfo()
+
+```
+
+---
+Jeremy WICQUART | jeremywicquart@gmail.com | `r format(Sys.time())`

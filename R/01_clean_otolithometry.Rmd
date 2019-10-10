@@ -27,6 +27,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FA
 
 source("functions/firstup.R")
 source("functions/backcalc.R")
+source("functions/bcalc_bayes.R")
 
 # 2. Recquired packages ----
 
@@ -35,6 +36,11 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(rfishbase)
+library(rstan)
+
+# 3. Source models ----
+
+bcalc_stan <- stan_model("./../stan/bcalc.stan")
 
 ```
 
@@ -369,20 +375,67 @@ data_complete <- data_complete %>%
 
 rm(new_species_l0p, old_species_l0p)
 
-# 5. Make the back-calculation ----
+```
 
-# 5.1 Back-calculation for each species --
+# Back calculation
 
-data_complete <- ddply(data_complete, .(species), function(x) backcalc(x))
+## By species
 
-# 5.2 Replacement of Li at age 0 by the value of L0p --
+### Bayesian method
 
-data_complete$li[data_complete$agei == 0] <- data_complete$l0p[data_complete$agei == 0]
+```{r}
 
-# 6. Re order variables ----
+# 2. Make the back-calculation with Bayesian method ----
 
-data_complete <- data_complete %>% 
-  select(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, r0p, li, biomass, location, observer) %>% 
+# 2.1 Back-calculation for each species --
+
+options <- unique(select(data_complete, species))
+
+bc_results <- 
+lapply(1:nrow(options), purrr::possibly(function(x){
+  print(x)
+  print(options[x,])
+  data <- dplyr::filter(data_complete, species == options[x, "species"], agecap > 1)
+  result <- bcalc_bayes(data)
+  return(result)
+}, otherwise = NA))
+
+bc_results1 <- bc_results[!is.na(bc_results)] %>% 
+  lapply(function(x){x$lengths}) %>% 
+  plyr::ldply() %>% 
+  mutate(agei = age) %>% 
+  dplyr::select(-age)
+
+# 2.2 Merge with the data --
+
+data_complete_sp <- left_join(data_complete, bc_results1)
+
+```
+
+### Frequentist method
+
+```{r}
+
+# 1. Make the back-calculation with frequentist method ----
+
+# 1.1 Back-calculation for each species --
+
+data_complete_sp <- ddply(data_complete_sp, .(species), function(x) backcalc(x))
+
+# 1.2 Replacement of Li at age 0 by the value of L0p --
+
+data_complete_sp$li[data_complete_sp$agei == 0] <- data_complete_sp$l0p[data_complete_sp$agei == 0]
+
+```
+
+### Export
+
+```{r}
+
+# 1. Re order variables ----
+
+data_complete_sp <- data_complete_sp %>% 
+  select(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, r0p, l_m, li, biomass, location, observer) %>% 
   rename("Family" = "family",
          "Genus" = "genus",
          "Species" = "species",
@@ -394,14 +447,94 @@ data_complete <- data_complete %>%
          "Lcpt" = "lencap",
          "L0p" = "l0p",
          "R0p" = "r0p",
-         "Li" = "li",
+         "Li_bayes" = "l_m",
+         "Li_freq" = "li",
          "Biomass" = "biomass",
          "Location" = "location",
          "Observer" = "observer") # Rename all variables following the standards of growth models
 
-# 7. Export data ----
+# 2. Export data ----
 
-write.csv(data_complete, "./../data/size_at_age_coral_reef_fishes_data.csv", row.names = FALSE)
+write.csv(data_complete_sp, 
+          "./../data/size_at_age_coral_reef_fishes_data_by-species.csv", 
+          row.names = FALSE)
+
+```
+
+## By species and location
+
+### Bayesian method
+
+```{r}
+
+# 2. Make the back-calculation with Bayesian method ----
+
+# 2.1 Back-calculation for each species and each location --
+
+options <- unique(select(data_complete, location, species))
+
+bc_results <- 
+lapply(1:nrow(options), purrr::possibly(function(x){
+  print(x)
+  print(options[x,])
+  data <- dplyr::filter(data_complete, location == options[x, "location"], 
+                               species == options[x, "species"], agecap > 1)
+  result <- bcalc_bayes(data)
+  return(result)
+}, otherwise = NA))
+
+bc_results1 <- bc_results[!is.na(bc_results)] %>% 
+  lapply(function(x){x$lengths}) %>% 
+  plyr::ldply() %>% 
+  mutate(agei = age) %>% 
+  dplyr::select(-age)
+
+# 2.2 Merge with the data --
+
+data_complete_sploc <- left_join(data_complete, bc_results1)
+
+# 2.3 Add R0p --
+
+data_complete_sploc <- data_complete_sploc %>% 
+  filter(agei == "0") %>% 
+  dplyr::group_by(species, location) %>% 
+  summarize(r0p = mean(radi, na.rm = TRUE)) %>% 
+  merge(., data_complete_sploc, all.y = TRUE)
+
+```
+
+### Export
+
+```{r}
+
+# 1. Re order variables ----
+
+data_complete_sploc <- data_complete_sploc %>% 
+  select(family, genus, species, id, agei, radi, agecap, radcap, lencap, l0p, r0p, l_m, l_sd, l_q1, l_q3, biomass, location, observer) %>% 
+  rename("Family" = "family",
+         "Genus" = "genus",
+         "Species" = "species",
+         "ID" = "id",
+         "Agei" = "agei",
+         "Ri" = "radi",
+         "Agecpt" = "agecap",
+         "Rcpt" = "radcap",
+         "Lcpt" = "lencap",
+         "L0p" = "l0p",
+         "R0p" = "r0p",
+         "Li_m" = "l_m",
+         "Li_sd" = "l_sd",
+         "Li_q1" = "l_q1",
+         "Li_q3" = "l_q3",
+         "Biomass" = "biomass",
+         "Location" = "location",
+         "Observer" = "observer") # Rename all variables following the standards of growth models
+
+# 2. Export data ----
+
+write.csv(data_complete_sploc, 
+          "./../data/size_at_age_coral_reef_fishes_data_by-species-and-location.csv", 
+          row.names = FALSE)
 
 ```
 
