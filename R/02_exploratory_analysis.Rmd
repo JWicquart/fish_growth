@@ -47,7 +47,7 @@ theme_set(theme_graph())
 
 # 3. Load data ----
 
-data_complete <- read.csv("./../data/size_at_age_coral_reef_fishes_data_by-species.csv")
+data_complete <- read.csv("./../data/size_at_age_coral_reef_fishes_data.csv")
 
 ```
 
@@ -117,25 +117,63 @@ ggplot(data_complete, aes(x = Agei, y = Ri)) +
 
 ```
 
-# Agei *vs* Li
+# Agei *vs* Li (species)
+
+```{r}
+
+ggplot(data_complete, aes(x = Agei, y = Li_sp_m)) +
+  geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
+  theme(strip.text.x = element_text(size = 8, face = "italic"),
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black"),
+        strip.text.y = element_text(angle = 360)) +
+  facet_grid(Species~Location, scales = "free") +
+  labs(x = "Age (years)", y = "Length at age i (mm)", title = "Check for outliers", subtitle = "agei vs li")
+
+```
+
+# Agei *vs* Li (species and location)
+
+```{r}
+
+ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
+  geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
+  theme(strip.text.x = element_text(size = 8, face = "italic"),
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black"),
+        strip.text.y = element_text(angle = 360)) +
+  facet_grid(Species~Location, scales = "free") +
+  labs(x = "Age (years)", y = "Length at age i (mm)", title = "Check for outliers", subtitle = "agei vs li")
+
+```
+
+# Agei *vs* Li (comparison)
 
 ```{r}
 
 data_complete %>% 
+  select(-Li_sp_sd, -Li_sploc_sd) %>% 
   gather(12:13, key = Method, value = Li) %>% 
-  mutate(Method = str_replace_all(Method, c("Li_freq" = "Frequentist",
-                                            "Li_bayes" = "Bayesian"))) %>% 
+  mutate(Method = str_replace_all(Method, c("Li_sp_m" = "Species",
+                                            "Li_sploc_m" = "Species x Location"))) %>%
   ggplot(., aes(x = Agei, y = Li, fill = Method)) +
-    geom_point(size = 1, shape = 21, alpha = 0.7)+
+    geom_point(color = col_color_graph, size = 1, shape = 21, alpha = 0.5)+
     theme(strip.text.x = element_text(size = 8, face = "italic"),
           strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
           plot.title = element_text(colour = col_color_graph),
           plot.subtitle = element_text(colour = "black"),
+          strip.text.y = element_text(angle = 360),
           legend.position = "top") +
-    facet_wrap(~Species, scales = "free", ncol = 5) +
-    labs(x = "Age (years)", y = "Length at age i (mm)", title = "Check for outliers", subtitle = "agei vs li")
+    facet_grid(Species~Location, scales = "free") +
+    labs(x = "Age (years)", y = "Length at age i (mm)")
 
 ```
+
+
+
+
 
 # Biomass *vs* Lcpt
 
