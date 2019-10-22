@@ -372,7 +372,7 @@ if(file.exists("./../data/l0p/species_l0p.csv")){
 data_complete <- data_complete %>% 
   select(-l0p) %>% # Remove existing l0p
   merge(., read.csv2("./../data/l0p/species_l0p.csv"), all.x = TRUE) %>% # Merge with the new ones
-  mutate(location = str_replace_all(location, c("Scilly" = "Manuae")))
+  mutate(location = str_replace_all(location, c("Scilly" = "Manuae"))) # Change the name of Scilly by Manuae
   
 rm(new_species_l0p, old_species_l0p)
 
@@ -429,10 +429,10 @@ bc_results2 <- bc_results[!is.na(bc_results)] %>%
 
 data_complete <- data_complete %>% 
   filter(agei == "0") %>% 
-  dplyr::group_by(species, location) %>% 
+  dplyr::group_by(species) %>% 
   summarize(r0p = mean(radi, na.rm = TRUE)) %>% 
   ungroup(.) %>% 
-  merge(., data_complete, by = c("species", "location"), all.y = TRUE) %>% 
+  merge(., data_complete, by = c("species"), all.y = TRUE) %>% 
   merge(., bc_results1, by = c("family", "species", "id", "agei"), all.x = TRUE) %>% 
   merge(., bc_results2, by = c("family", "species", "id", "agei"), all.x = TRUE)
 

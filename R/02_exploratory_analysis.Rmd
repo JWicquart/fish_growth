@@ -94,7 +94,7 @@ data_complete %>%
          Hao = cell_spec(Hao, "html", color = ifelse(is.na(Hao), "white", "#446CB3")),
          Marquesas = cell_spec(Marquesas, "html", color = ifelse(is.na(Marquesas), "white", "#446CB3")),
          Moorea = cell_spec(Moorea, "html", color = ifelse(is.na(Moorea), "white", "#446CB3")),
-         Scilly = cell_spec(Scilly, "html", color = ifelse(is.na(Scilly), "white", "#446CB3")),
+         Manuae = cell_spec(Manuae, "html", color = ifelse(is.na(Manuae), "white", "#446CB3")),
          Tuamotu = cell_spec(Tuamotu, "html", color = ifelse(is.na(Tuamotu), "white", "#446CB3"))) %>% 
   kable(., format = "html", escape = FALSE) %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
