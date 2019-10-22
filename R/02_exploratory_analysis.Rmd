@@ -171,10 +171,6 @@ data_complete %>%
 
 ```
 
-
-
-
-
 # Biomass *vs* Lcpt
 
 ```{r}
@@ -255,6 +251,23 @@ data_complete %>%
 
 ```
 
+# Difference between sp and site x sp
+
+```{r fig.height=5, fig.width=5}
+
+data_lm <- lm(Li_sploc_m ~ Li_sp_m, data = data_complete)
+
+data_complete %>% 
+  ggplot(., aes(x = Li_sp_m, y = Li_sploc_m)) +
+    geom_point() +
+    geom_abline(slope = data_lm$coefficients[2], intercept = data_lm$coefficients[1]) +
+    annotate("text", x = Inf, y = Inf, 
+             label = paste("r² = ", round(summary(data_lm)$r.squared, 3), sep = ""), 
+             vjust = 1, hjust = 1) +
+    labs(x = "Length at age i (sp)", y = "Length at age i (sp x site)")
+
+```
+
 # Abberant trajectories 
 
 ```{r fig.height=4, fig.width=6}
@@ -263,13 +276,13 @@ data_complete %>%
 
 data_complete %>% 
   filter(Species == "Acanthurus lineatus") %>% 
-  plot_ly(., x = ~Agei, y = ~Li_bayes, text = ~paste("ID:", ID))
+  plot_ly(., x = ~Agei, y = ~Li_sp_m, text = ~paste("ID:", ID))
 
 # 2. Plotly for Lutjanus kasmira ---- 
 
 data_complete %>% 
   filter(Species == "Lutjanus kasmira") %>% 
-  plot_ly(., x = ~Agei, y = ~Li_bayes, text = ~paste("ID:", ID))
+  plot_ly(., x = ~Agei, y = ~Li_sp_m, text = ~paste("ID:", ID))
 
 ```
 

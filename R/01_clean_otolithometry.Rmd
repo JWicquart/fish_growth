@@ -371,8 +371,9 @@ if(file.exists("./../data/l0p/species_l0p.csv")){
 
 data_complete <- data_complete %>% 
   select(-l0p) %>% # Remove existing l0p
-  merge(., read.csv2("./../data/l0p/species_l0p.csv"), all.x = TRUE) # Merge with the new ones
-
+  merge(., read.csv2("./../data/l0p/species_l0p.csv"), all.x = TRUE) %>% # Merge with the new ones
+  mutate(location = str_replace_all(location, c("Scilly" = "Manuae")))
+  
 rm(new_species_l0p, old_species_l0p)
 
 ```
