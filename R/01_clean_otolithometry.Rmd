@@ -376,6 +376,13 @@ data_complete <- data_complete %>%
   
 rm(new_species_l0p, old_species_l0p)
 
+# 5. Change the radi values from 0 to NA* ----
+
+# * If 0 the Bayesian back-calculation will find a NA for Li for the overall species or the overall species x location
+
+data_complete <- data_complete %>% 
+  mutate(radi = ifelse(radi == 0, NA, radi))
+
 ```
 
 # Bayesian back calculation
@@ -428,11 +435,10 @@ bc_results2 <- bc_results[!is.na(bc_results)] %>%
 # 3. Add R0p and merge data ----
 
 data_complete <- data_complete %>% 
-  filter(agei == "0") %>% 
-  dplyr::group_by(species) %>% 
-  summarize(r0p = mean(radi, na.rm = TRUE)) %>% 
+  dplyr::group_by(id) %>% 
+  summarize(r0p = radi[which(agei == 0)]) %>% 
   ungroup(.) %>% 
-  merge(., data_complete, by = c("species"), all.y = TRUE) %>% 
+  merge(data_complete, ., by = "id", all.y = TRUE) %>% 
   merge(., bc_results1, by = c("family", "species", "id", "agei"), all.x = TRUE) %>% 
   merge(., bc_results2, by = c("family", "species", "id", "agei"), all.x = TRUE)
 
