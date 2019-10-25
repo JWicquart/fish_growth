@@ -227,9 +227,9 @@ data_morphometry_marquesas2 <- read.csv("./../data/morphometry/01-raw_otolith_mo
 # 5. Hao data ----
 
 data_morphometry_hao <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_hao.csv", sep = ";") %>% 
-  select(Code.fish, Espèce.Fish, Poids.Pt.en.g, Taille.Lt.en.mm) %>% 
+  select(Code.fish, Espece.Fish, Poids.Pt.en.g, Taille.Lt.en.mm) %>% 
   rename("id" = "Code.fish",
-         "species" = "Espèce.Fish",
+         "species" = "Espece.Fish",
          "total_length" = "Taille.Lt.en.mm",
          "biomass" = "Poids.Pt.en.g") %>% 
   mutate(location = "Hao") # Add location
