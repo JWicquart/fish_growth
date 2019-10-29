@@ -102,9 +102,32 @@ data_complete %>%
 
 ```
 
-# Agei *vs* Ri
+# Individuals with back-calculation
 
 ```{r}
+
+# 1. Create a dataset without NA ----
+
+data_without_na <- data_complete %>% 
+  filter(!is.na(Li_sp_m))
+
+# 2. Get the number of species with back-calculated size-at-age ----
+
+length(unique(data_without_na$Species))
+
+# 3. Get the number of individuals with back-calculated size-at-age ----
+
+length(unique(data_without_na$ID))
+
+# 4. Remove useless dataset ----
+
+rm(data_without_na)
+
+```
+
+# Agei *vs* Ri
+
+```{r fig.width=15, fig.height=40}
 
 ggplot(data_complete, aes(x = Agei, y = Ri)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
@@ -119,7 +142,7 @@ ggplot(data_complete, aes(x = Agei, y = Ri)) +
 
 # Agei *vs* Li (species)
 
-```{r}
+```{r fig.width=15, fig.height=40}
 
 ggplot(data_complete, aes(x = Agei, y = Li_sp_m)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
@@ -135,7 +158,7 @@ ggplot(data_complete, aes(x = Agei, y = Li_sp_m)) +
 
 # Agei *vs* Li (species and location)
 
-```{r}
+```{r fig.width=15, fig.height=40}
 
 ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
@@ -151,7 +174,7 @@ ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
 
 # Agei *vs* Li (comparison)
 
-```{r}
+```{r fig.width=15, fig.height=40}
 
 data_complete %>% 
   select(-Li_sp_sd, -Li_sploc_sd) %>% 
@@ -173,7 +196,7 @@ data_complete %>%
 
 # Biomass *vs* Lcpt
 
-```{r}
+```{r fig.width=15, fig.height=40}
 
 # 1. Remove NA from data ----
 
