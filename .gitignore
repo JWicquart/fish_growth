@@ -3,5 +3,8 @@
 .RData
 .Ruserdata
 
-doc/Notebook.docx
+doc/
+data/l0p
+data/morphometry
+data/otolithometry
 output/

@@ -10,10 +10,10 @@
 9;"Lcpt";NA;NA;"Numeric";"28.11 - 984.69"
 10;"L0p";NA;NA;"Numeric";"1.45 - 4.25"
 11;"R0p";NA;NA;"Numeric";"0.008 - 0.136"
-12;"Li_sp_m";NA;NA;"Numeric";"1.45 - 948.131"
-13;"Li_sp_sd";NA;NA;"Numeric";"0 - 51.27"
-14;"Li_sploc_m";NA;NA;"Numeric";"1.45 - 945.55"
-15;"Li_sploc_sd";NA;NA;"Numeric";"0 - 49.044"
+12;"Li_sp_m";NA;NA;"Numeric";"1.45 - 948.117"
+13;"Li_sp_sd";NA;NA;"Numeric";"0 - 49.873"
+14;"Li_sploc_m";NA;NA;"Numeric";"1.45 - 945.602"
+15;"Li_sploc_sd";NA;NA;"Numeric";"0 - 50.273"
 16;"Biomass";NA;NA;"Numeric";"0.4 - 12950"
 17;"Location";NA;NA;"Factor";NA
 18;"Observer";NA;NA;"Factor";NA
