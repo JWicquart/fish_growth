@@ -24,7 +24,7 @@ On the project main page on GitHub, click on the green button `clone or download
 
 This project is divided in three folder:
 
-* `R` folder contains the script 02_back_calculation.Rmd and the `functions` folder.  The _.Rmd_ format was selected because it allows to keep a track of intermediate results through _.html_ files. The functions folder contains the function _bcalc_bayes.R_ used for bayesian back-calculation.
+* `R` folder contains the script 02_back_calculation.Rmd and the `functions` folder.  The _.Rmd_ format was selected because it allows to keep a track of intermediate results through _.html_ files. The `functions` folder contains the function _bcalc_bayes.R_ used for bayesian back-calculation.
 * `data` folder contains the data file used to produce the final data file associated with the article (**_size_at_age_coral_reef_fishes_data_**)
 * `stan` folder contains the stan script used in the back-calculation procedure
 
@@ -75,7 +75,7 @@ The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**)
 
 ### 2.3 How to reproduce the final dataset?
 
-The **_coral_reef_fishes_data_** file is used by the script _02_back_calculation.Rmd_ to estimate the back-calculated size-at-age and export the final file **_size_at_age_coral_reef_fishes_data_**.
+The **_coral_reef_fishes_data_** file is used by the script _02_back_calculation.Rmd_ to estimate the back-calculated size-at-age and export the final file **_size_at_age_coral_reef_fishes_data_**. To reproduce the final file, open the script _02_back_calculation.Rmd_ and click on `knit`. Make sure that all required packages were previously downloaded.
 
 
 
