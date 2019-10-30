@@ -8,3 +8,11 @@ data/l0p/
 data/morphometry/
 data/otolithometry/
 output/
+
+data/variables_complete_for_Morat_et_al.csv
+R/03_exploratory_analysis.Rmd
+R/01_clean_otolithometry.Rmd
+R/functions/allometry.R
+R/functions/firstup.R
+R/functions/graphical_par.R
+R/functions/theme_graph.R

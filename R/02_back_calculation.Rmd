@@ -45,7 +45,7 @@ data_complete <- read.csv("./../data/coral_reef_fishes_data.csv")
 
 ```
 
-# Bayesian back-calculation (used)
+# Bayesian back-calculation
 
 ```{r}
 
@@ -129,7 +129,7 @@ write.csv(data_complete,
 
 ```
 
-# Frequentist back-calculation (not used)
+# Frequentist back-calculation
 
 ```{r eval=FALSE, include=FALSE}
 
