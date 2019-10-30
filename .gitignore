@@ -4,7 +4,7 @@
 .Ruserdata
 
 doc/
-data/l0p
-data/morphometry
-data/otolithometry
+data/l0p/
+data/morphometry/
+data/otolithometry/
 output/
