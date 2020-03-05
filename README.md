@@ -4,7 +4,7 @@
 
 **This repository contains code and data presented in the article**:
 
-Morat, F., Wicquart, J., de Synéty, G., Bienvenu, J., Brandl, S. J., Carlot, J., Casey, J. M., Degregori, S., Mercière, A., Fey, P., Galzin, R., Letourneur, Y., Sasal, P., Schiettekatte, N. M. D., Vii, J., Parravicini, V. (2019). Reef fish growth dataset: annual otolith sagittal growth for Pacific coral reef fishes. _Ecology_, submitted.
+Morat, F., Wicquart, J., de Synéty, G., Bienvenu, J., Brandl, S. J., Carlot, J., Casey, J. M., Degregori, S., Mercière, A., Fey, P., Galzin, R., Letourneur, Y., Sasal, P., Schiettekatte, N. M. D., Vii, J., Parravicini, V. (2020). Reef fish growth dataset: annual otolith sagittal growth for Pacific coral reef fishes. _Scientific Data_, submitted.
 
 
 
@@ -44,7 +44,7 @@ The dataset **_coral_reef_fishes_data_** contains the following variables:
 - `radcap` Radius of the otolith at capture (*mm*)
 - `lencap` Length of the fish at capture (*total length, mm*)
 - `l0p` Length of the fish at hatching (*mm*)
-- `biomass` Wet body mass of the fish at capture (*g*)
+- `bodymass` Wet body mass of the fish at capture (*g*)
 - `location` Island of the sampling
 - `observer` Name of the person who realized the otolith reading
 
@@ -67,7 +67,7 @@ The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**)
 - `Li_sp_sd` Standard deviation around the value of `Li_sp_m` (_mm_)
 - `Li_sploc_m` Total length (mean) of the fish at age *i* calculated by species and location (*mm*)
 - `Li_sploc_sd` Standard deviation around the value of `Li_sploc_m` (_mm_)
-- `Biomass` Wet body mass of the fish at capture (*g*)
+- `Bodymass` Wet body mass of the fish at capture (*g*)
 - `Location` Island of the sampling
 - `Observer` Name of the person who realized the otolith reading
 
@@ -85,7 +85,7 @@ The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**)
 
 1. **Estimation of growth parameters and growth curves**. Growth parameters can be obtained using the variables `Agei` and `Li_sp_m` (by species across all locations) or `Li_sploc_m` (by species and location).
 
-2. **Estimation of length-weight relationship**. The relationship _W = aL^b_ (with W = weight and L = length) can be used to estimate the biomass of a fish from its length. To do so the parameters _a_ and _b_ are needed and can be obtained by fitting an allometric model using measured biomass and length of several individuals of a given species. Our dataset provide such data and make it possible to estimate _a_ and _b_ parameters. The variables `Biomass` and `Lcpt` can be used for that purpose.
+2. **Estimation of length-weight relationship**. The relationship _W = aL^b_ (with W = weight and L = length) can be used to estimate the bodymass of a fish from its length. To do so the parameters _a_ and _b_ are needed and can be obtained by fitting an allometric model using measured bodymass and length of several individuals of a given species. Our dataset provide such data and make it possible to estimate _a_ and _b_ parameters. The variables `Bodymass` and `Lcpt` can be used for that purpose.
 
 
 
@@ -94,7 +94,7 @@ The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**)
 
 
 ```R
-## R version 3.6.1 (2019-07-05)
+## R version 3.6.3 (2020-02-29)
 ## Platform: x86_64-w64-mingw32/x64 (64-bit)
 ## Running under: Windows 10 x64 (build 18362)
 ## 
@@ -109,24 +109,26 @@ The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**)
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] rstan_2.19.2       ggplot2_3.2.1      StanHeaders_2.19.0
-## [4] tidyr_1.0.0        dplyr_0.8.3        plyr_1.8.4        
-## 
+##  [1] rstan_2.19.3         StanHeaders_2.21.0-1 forcats_0.5.0       
+##  [4] stringr_1.4.0        dplyr_0.8.4          purrr_0.3.3         
+##  [7] readr_1.3.1          tidyr_1.0.2          tibble_2.1.3        
+## [10] ggplot2_3.2.1        tidyverse_1.3.0      plyr_1.8.6          
+
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_1.0.2         pillar_1.4.2       compiler_3.6.1    
-##  [4] prettyunits_1.0.2  tools_3.6.1        zeallot_0.1.0     
-##  [7] digest_0.6.22      pkgbuild_1.0.6     evaluate_0.14     
-## [10] lifecycle_0.1.0    tibble_2.1.3       gtable_0.3.0      
-## [13] pkgconfig_2.0.3    rlang_0.4.1        cli_1.1.0         
-## [16] parallel_3.6.1     yaml_2.2.0         xfun_0.10         
-## [19] loo_2.1.0          gridExtra_2.3      withr_2.1.2       
-## [22] stringr_1.4.0      knitr_1.25         vctrs_0.2.0       
-## [25] stats4_3.6.1       grid_3.6.1         tidyselect_0.2.5  
-## [28] glue_1.3.1         inline_0.3.15      R6_2.4.0          
-## [31] processx_3.4.1     rmarkdown_1.16     callr_3.3.2       
-## [34] purrr_0.3.3        magrittr_1.5       codetools_0.2-16  
-## [37] matrixStats_0.55.0 ps_1.3.0           backports_1.1.5   
-## [40] scales_1.0.0       htmltools_0.3.6    assertthat_0.2.1  
-## [43] colorspace_1.4-1   stringi_1.4.3      lazyeval_0.2.2    
-## [46] munsell_0.5.0      crayon_1.3.4
+##  [1] Rcpp_1.0.3         lubridate_1.7.4    lattice_0.20-38    prettyunits_1.1.1 
+##  [5] ps_1.3.2           assertthat_0.2.1   digest_0.6.25      R6_2.4.1          
+##  [9] cellranger_1.1.0   backports_1.1.5    reprex_0.3.0       stats4_3.6.3      
+## [13] evaluate_0.14      httr_1.4.1         pillar_1.4.3       rlang_0.4.5       
+## [17] lazyeval_0.2.2     readxl_1.3.1       rstudioapi_0.11    callr_3.4.2       
+## [21] rmarkdown_2.1      loo_2.2.0          munsell_0.5.0      broom_0.5.5       
+## [25] compiler_3.6.3     modelr_0.1.6       xfun_0.12          pkgconfig_2.0.3   
+## [29] pkgbuild_1.0.6     htmltools_0.4.0    tidyselect_1.0.0   gridExtra_2.3     
+## [33] codetools_0.2-16   matrixStats_0.55.0 fansi_0.4.1        crayon_1.3.4      
+## [37] dbplyr_1.4.2       withr_2.1.2        grid_3.6.3         nlme_3.1-144      
+## [41] jsonlite_1.6.1     gtable_0.3.0       lifecycle_0.1.0    DBI_1.1.0         
+## [45] magrittr_1.5       scales_1.1.0       cli_2.0.2          stringi_1.4.6     
+## [49] fs_1.3.1           xml2_1.2.2         generics_0.0.2     vctrs_0.2.3       
+## [53] tools_3.6.3        glue_1.3.1         hms_0.5.3          parallel_3.6.3    
+## [57] processx_3.4.2     yaml_2.2.1         inline_0.3.15      colorspace_1.4-1  
+## [61] rvest_0.3.5        knitr_1.28         haven_2.2.0  
 ```
