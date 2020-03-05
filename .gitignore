@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+.html
 
 doc/
 data/l0p/
