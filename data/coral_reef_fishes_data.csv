@@ -1,4 +1,4 @@
-"family","genus","species","id","agei","radi","agecap","radcap","lencap","l0p","bodymass","location","observer"
+"family","genus","species","id","agei","radi","agecap","radcap","lencap","l0p","weight","location","observer"
 "Acanthuridae","Acanthurus","Acanthurus achilles","AC_AC_SC_03_16_001",0,0.014,27,1.07659108114909,245.51,1.7,201.3,"Manuae","Jean Bienvenu"
 "Acanthuridae","Acanthurus","Acanthurus achilles","AC_AC_SC_03_16_001",1,0.401479502866136,27,1.07659108114909,245.51,1.7,201.3,"Manuae","Jean Bienvenu"
 "Acanthuridae","Acanthurus","Acanthurus achilles","AC_AC_SC_03_16_001",2,0.45699752129099,27,1.07659108114909,245.51,1.7,201.3,"Manuae","Jean Bienvenu"

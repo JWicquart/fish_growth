@@ -44,7 +44,7 @@ The dataset **_coral_reef_fishes_data_** contains the following variables:
 - `radcap` Radius of the otolith at capture (*mm*)
 - `lencap` Length of the fish at capture (*total length, mm*)
 - `l0p` Length of the fish at hatching (*mm*)
-- `bodymass` Wet body mass of the fish at capture (*g*)
+- `weight` Wet weight of the fish at capture (*g*)
 - `location` Island of the sampling
 - `observer` Name of the person who realized the otolith reading
 
@@ -67,7 +67,7 @@ The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**)
 - `Li_sp_sd` Standard deviation around the value of `Li_sp_m` (_mm_)
 - `Li_sploc_m` Total length (mean) of the fish at age *i* calculated by species and location (*mm*)
 - `Li_sploc_sd` Standard deviation around the value of `Li_sploc_m` (_mm_)
-- `Bodymass` Wet body mass of the fish at capture (*g*)
+- `Weight` Wet weight of the fish at capture (*g*)
 - `Location` Island of the sampling
 - `Observer` Name of the person who realized the otolith reading
 
@@ -85,7 +85,7 @@ The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**)
 
 1. **Estimation of growth parameters and growth curves**. Growth parameters can be obtained using the variables `Agei` and `Li_sp_m` (by species across all locations) or `Li_sploc_m` (by species and location).
 
-2. **Estimation of length-weight relationship**. The relationship _W = aL^b_ (with W = weight and L = length) can be used to estimate the bodymass of a fish from its length. To do so the parameters _a_ and _b_ are needed and can be obtained by fitting an allometric model using measured bodymass and length of several individuals of a given species. Our dataset provide such data and make it possible to estimate _a_ and _b_ parameters. The variables `Bodymass` and `Lcpt` can be used for that purpose.
+2. **Estimation of length-weight relationship**. The relationship _W = aL^b_ (with W = weight and L = length) can be used to estimate the weight of a fish from its length. To do so the parameters _a_ and _b_ are needed and can be obtained by fitting an allometric model using measured weight and length of several individuals of a given species. Our dataset provide such data and make it possible to estimate _a_ and _b_ parameters. The variables `Weight` and `Lcpt` can be used for that purpose.
 
 
 

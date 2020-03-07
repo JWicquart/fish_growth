@@ -114,11 +114,11 @@ data_complete <- data_complete %>%
          "Rcpt" = "radcap",
          "Lcpt" = "lencap",
          "L0p" = "l0p",
-         "Bodymass" = "bodymass",
+         "Weight" = "weight",
          "Location" = "location",
          "Observer" = "observer") %>% 
   select(Family, Genus, Species, ID, Agei, Ri, Agecpt, Rcpt, Lcpt, L0p, R0p, 
-         Li_sp_m, Li_sp_sd, Li_sploc_m, Li_sploc_sd, Bodymass, Location, Observer) # Re-order variables
+         Li_sp_m, Li_sp_sd, Li_sploc_m, Li_sploc_sd, Weight, Location, Observer) # Re-order variables
 
 # 5. Export data ----
 
