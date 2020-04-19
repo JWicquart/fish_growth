@@ -1,10 +1,10 @@
-# **Reef fish growth dataset: annual otolith sagittal growth for Pacific coral reef fishes**
+# **Individual back-calculated size-at-age based on otoliths from Pacific coral reef fish species**
 
 
 
 **This repository contains code and data presented in the article**:
 
-Morat, F., Wicquart, J., de Synéty, G., Bienvenu, J., Brandl, S. J., Carlot, J., Casey, J. M., Degregori, S., Mercière, A., Fey, P., Galzin, R., Letourneur, Y., Sasal, P., Schiettekatte, N. M. D., Vii, J., Parravicini, V. (2020). Reef fish growth dataset: annual otolith sagittal growth for Pacific coral reef fishes. _Scientific Data_, submitted.
+Morat, F., Wicquart, J., Schiettekatte, N. M. D., de Synéty, G., Bienvenu, J., Casey, J. M., Brandl, S. J., Carlot, J., Degregori, S., Mercière, A., Fey, P., Galzin, R., Letourneur, Y., Sasal, P., Vii, J., Parravicini, V. (2020). Individual back-calculated size-at-age based on otoliths from Pacific coral reef fish species. _Scientific Data_, submitted.
 
 
 
@@ -83,7 +83,7 @@ The **_coral_reef_fishes_data_** file is used by the script _02_back_calculation
 
 The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**) can be used for two purpose:
 
-1. **Estimation of growth parameters and growth curves**. Growth parameters can be obtained using the variables `Agei` and `Li_sp_m` (by species across all locations) or `Li_sploc_m` (by species and location).
+1. **Estimation of growth parameters and growth curves**. Growth parameters can be obtained using the variables `Agei` and `Li_sp_m` (by species across all locations) or `Li_sploc_m` (by species and location). The growth parameters can then be used to predict community level biomass production.
 
 2. **Estimation of length-weight relationship**. The relationship _W = aL^b_ (with W = weight and L = length) can be used to estimate the weight of a fish from its length. To do so the parameters _a_ and _b_ are needed and can be obtained by fitting an allometric model using measured weight and length of several individuals of a given species. Our dataset provide such data and make it possible to estimate _a_ and _b_ parameters. The variables `Weight` and `Lcpt` can be used for that purpose.
 
