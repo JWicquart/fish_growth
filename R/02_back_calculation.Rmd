@@ -123,7 +123,7 @@ data_complete <- data_complete %>%
 # 5. Export data ----
 
 write.csv(data_complete, 
-          "./../data/size_at_age_coral_reef_fishes_data.csv", 
+          "./../data/back-calculated-size-at-age_morat-et-al_2020-04-20.csv", 
           row.names = FALSE)
 
 ```

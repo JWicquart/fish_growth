@@ -25,14 +25,14 @@ On the project main page on GitHub, click on the green button `clone or download
 This project is divided in three folder:
 
 * `R` folder contains the script 02_back_calculation.Rmd and the `functions` folder.  The _.Rmd_ format was selected because it allows to keep a track of intermediate results through _.html_ files. The `functions` folder contains the function _bcalc_bayes.R_ used for bayesian back-calculation.
-* `data` folder contains the data file used to produce the final data file associated with the article (**_size_at_age_coral_reef_fishes_data_**)
+* `data` folder contains the data file used to produce the final data file associated with the article (**_back-calculated-size-at-age_morat-et-al_**)
 * `stan` folder contains the stan script used in the back-calculation procedure
 
 
 
 ### 2.2 Dataset description
 
-The dataset **_coral_reef_fishes_data_** contains the following variables:
+The raw dataset **_coral_reef_fishes_data_** contains the following variables:
 
 - `family` Family
 - `genus` Genus
@@ -50,7 +50,7 @@ The dataset **_coral_reef_fishes_data_** contains the following variables:
 
 
 
-The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**) contains the following variables:
+The dataset associated to the article (**_back-calculated-size-at-age_morat-et-al_**) contains the following variables:
 
 - `Family` Family
 - `Genus` Genus
@@ -75,13 +75,13 @@ The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**)
 
 ### 2.3 How to reproduce the final dataset?
 
-The **_coral_reef_fishes_data_** file is used by the script _02_back_calculation.Rmd_ to estimate the back-calculated size-at-age and export the final file **_size_at_age_coral_reef_fishes_data_**. To reproduce the final file, open the script _02_back_calculation.Rmd_ and click on `knit`. Make sure that all required packages were previously downloaded.
+The **_coral_reef_fishes_data_** file is used by the script _02_back_calculation.Rmd_ to estimate the back-calculated size-at-age and export the final file **_back-calculated-size-at-age_morat-et-al_**. To reproduce the final file, open the script _02_back_calculation.Rmd_ and click on `knit`. Make sure that all required packages were previously downloaded.
 
 
 
 ### 2.4 How to use the final dataset?
 
-The dataset associated to the article (**_size_at_age_coral_reef_fishes_data_**) can be used for two purpose:
+The dataset associated to the article (**_back-calculated-size-at-age_morat-et-al_**) can be used for two purpose:
 
 1. **Estimation of growth parameters and growth curves**. Growth parameters can be obtained using the variables `Agei` and `Li_sp_m` (by species across all locations) or `Li_sploc_m` (by species and location). The growth parameters can then be used to predict community level biomass production.
 
