@@ -41,6 +41,8 @@ library(rstan)
 # 3. Source models ----
 
 bcalc_stan <- stan_model("./../stan/bcalc.stan")
+vonbert_stan <- stan_model("./../stan/vonbert.stan")
+
 
 ```
 
@@ -148,7 +150,7 @@ data_morphometry_reefservices <- read.csv("./../data/morphometry/01-raw_otolith_
 
 # 2.1 Main modifications --
 
-data_morphometry_gambier <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_gambier.csv", sep = ";") %>% 
+data_morphometry_gambier <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_gambier.csv") %>% 
   select(Names, Species, TL_cm, SL_cm, Masse..g.) %>% 
   mutate(TL_cm = TL_cm*10,
          SL_cm = SL_cm*10) %>% # Convert total and standard length from cm to mm
@@ -226,10 +228,10 @@ data_morphometry_marquesas2 <- read.csv("./../data/morphometry/01-raw_otolith_mo
 
 # 5. Hao data ----
 
-data_morphometry_hao <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_hao.csv", sep = ";") %>% 
-  select(Code.fish, Espèce.Fish, Poids.Pt.en.g, Taille.Lt.en.mm) %>% 
+data_morphometry_hao <- read.csv("./../data/morphometry/01-raw_otolith_morphometry_hao.csv") %>% 
+  select(Code.fish, Espece.Fish, Poids.Pt.en.g, Taille.Lt.en.mm) %>% 
   rename("id" = "Code.fish",
-         "species" = "Espèce.Fish",
+         "species" = "Espece.Fish",
          "total_length" = "Taille.Lt.en.mm",
          "biomass" = "Poids.Pt.en.g") %>% 
   mutate(location = "Hao") # Add location
@@ -386,7 +388,7 @@ rm(new_species_l0p, old_species_l0p)
 
 options <- unique(select(data_complete, species))
 
-bc_results <- 
+bc_results_sp <- 
 lapply(1:nrow(options), purrr::possibly(function(x){
   print(x)
   print(options[x,])
@@ -395,7 +397,13 @@ lapply(1:nrow(options), purrr::possibly(function(x){
   return(result)
 }, otherwise = NA))
 
-bc_results1 <- bc_results[!is.na(bc_results)] %>% 
+test <- filter(data_complete, species %in% options$species[which(is.na(bc_results_sp))])
+
+data <- dplyr::filter(data_complete, location == options[x, "location"], 
+                               species == options[x, "species"], agecap > 1)
+  result <- bcalc_bayes(data)
+
+bc_results1 <- bc_results_sp[!is.na(bc_results_sp)] %>% 
   lapply(function(x){x$lengths}) %>% 
   plyr::ldply() %>% 
   dplyr::select(-l_q1, -l_q3) %>% 
@@ -417,7 +425,13 @@ lapply(1:nrow(options), purrr::possibly(function(x){
   return(result)
 }, otherwise = NA))
 
-bc_results2 <- bc_results[!is.na(bc_results)] %>% 
+
+
+bc_results_ <- bc_results_sp %>% 
+  lapply(function(x){x$lengths}) %>% 
+  plyr::ldply()
+
+bc_results2 <- bc_results_sp[!is.na(bc_results_sp)] %>% 
   lapply(function(x){x$lengths}) %>% 
   plyr::ldply() %>% 
   dplyr::select(-l_q1, -l_q3) %>% 
@@ -430,7 +444,7 @@ bc_results2 <- bc_results[!is.na(bc_results)] %>%
 data_complete <- data_complete %>% 
   filter(agei == "0") %>% 
   dplyr::group_by(species) %>% 
-  summarize(r0p = mean(radi, na.rm = TRUE)) %>% 
+  #summarize(r0p = mean(radi, na.rm = TRUE)) %>% 
   ungroup(.) %>% 
   merge(., data_complete, by = c("species"), all.y = TRUE) %>% 
   merge(., bc_results1, by = c("family", "species", "id", "agei"), all.x = TRUE) %>% 
