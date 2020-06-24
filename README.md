@@ -6,13 +6,17 @@
 
 Morat, F., Wicquart, J., Schiettekatte, N. M. D., de Synéty, G., Bienvenu, J., Casey, J. M., Brandl, S. J., Carlot, J., Degregori, S., Mercière, A., Fey, P., Galzin, R., Letourneur, Y., Sasal, P., Vii, J., Parravicini, V. (2020). Individual back-calculated size-at-age based on otoliths from Pacific coral reef fish species. _Scientific Data_, submitted.
 
+```
+[![Generic badge](https://img.shields.io/badge/<DOI>-<10.6084/m9.figshare.12156159.v1>-<BLUE>.svg)](https://figshare.com/articles/Individual_back-calculated_size-at-age_based_on_otoliths_from_Pacific_coral_reef_fish_species/12156159/1)
+```
+
 
 
 ## 1. How to download this project?
 
 
 
-On the project main page on GitHub, click on the green button `clone or download` and then click on `Download ZIP`
+On the project main page on GitHub, click on the green button `Clone` and then click on `Download ZIP`
 
 
 
@@ -84,12 +88,19 @@ The **_coral_reef_fishes_data_** file is used by the script _02_back_calculation
 The dataset associated to the article (**_back-calculated-size-at-age_morat-et-al_**) can be used for two purpose:
 
 1. **Estimation of growth parameters and growth curves**. Growth parameters can be obtained using the variables `Agei` and `Li_sp_m` (by species across all locations) or `Li_sploc_m` (by species and location). The growth parameters can then be used to predict community level biomass production.
-
 2. **Estimation of length-weight relationship**. The relationship _W = aL^b_ (with W = weight and L = length) can be used to estimate the weight of a fish from its length. To do so the parameters _a_ and _b_ are needed and can be obtained by fitting an allometric model using measured weight and length of several individuals of a given species. Our dataset provide such data and make it possible to estimate _a_ and _b_ parameters. The variables `Weight` and `Lcpt` can be used for that purpose.
 
 
 
-## 3. Reproducibility parameters
+## 3. How to report issues?
+
+
+
+Please report any bugs or issues [HERE](https://github.com/JWicquart/fish_growth/issues).
+
+
+
+## 4. Reproducibility parameters
 
 
 
