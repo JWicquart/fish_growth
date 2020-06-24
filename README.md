@@ -6,9 +6,8 @@
 
 Morat, F., Wicquart, J., Schiettekatte, N. M. D., de Synéty, G., Bienvenu, J., Casey, J. M., Brandl, S. J., Carlot, J., Degregori, S., Mercière, A., Fey, P., Galzin, R., Letourneur, Y., Sasal, P., Vii, J., Parravicini, V. (2020). Individual back-calculated size-at-age based on otoliths from Pacific coral reef fish species. _Scientific Data_, submitted.
 
-```
+
 [![Generic badge](https://img.shields.io/badge/<DOI>-<10.6084/m9.figshare.12156159.v1>-<BLUE>.svg)](https://figshare.com/articles/Individual_back-calculated_size-at-age_based_on_otoliths_from_Pacific_coral_reef_fish_species/12156159/1)
-```
 
 
 
