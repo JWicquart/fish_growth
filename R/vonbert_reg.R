@@ -33,13 +33,13 @@ bc <- group_by(bc, ID) %>%
   filter(agemax > 1)  %>%
   ungroup() %>%
 # filter with at least 3 replicates
-  group_by(Species, Location) %>% 
+  group_by(Species) %>% 
   mutate(nrep = length(unique(ID))) %>% 
   filter(nrep>2) %>%
   ungroup()
 
 # all unique combinations per species and location
-opts <- unique(select(bc, Location, Species))
+opts <- unique(select(bc, Species))
 
 # get maxlengths
 maxl <- rfishbase::species(opts$species, fields = c("Species", "Length")) %>% 
@@ -55,12 +55,11 @@ opts[opts$Species == "Chlorurus spilurus", "lmax"] <- 27
 growthmodels <-
   lapply(1:nrow(opts), function(x){
     
-    loc = opts[x,"Location"]
     sp = opts[x,"Species"]
     lmax = opts[x,"lmax"]
     
-    data <- bc %>% dplyr::filter(Location == loc, Species == sp)
-    fit <- growthreg(length = data$Li_sploc_m/10, 
+    data <- bc %>% dplyr::filter(Species == sp)
+    fit <- growthreg(length = data$Li_sp_m/10, 
                      age = data$Agei, 
                      id = as.character(data$ID), 
                      lmax = lmax, linf_m = 0.8 * lmax, 
