@@ -5,12 +5,14 @@
 .html
 
 doc/
+figs/
 data/l0p/
 data/morphometry/
 data/otolithometry/
 output/
 misc/
 data/von-bertalanffy-literature/
+data/otoliths-sections/
 
 data/variables_complete_for_Morat_et_al.csv
 data/variables_complete_for_Morat_et_al.csv
