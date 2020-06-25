@@ -1,5 +1,59 @@
-bcalc_bayes <- function(data){
-  require(rstan)
+#' Run back-calculation in Bayesian framework
+#'
+#' @author Nina M. D. Schiettekatte
+#' @param data dataframe containing results from otolith reading plus information on the length of hatching (l0p) of a certain species
+#' data should contain:
+#' \itemize{
+#' \item{id:} unique fish id per individual
+#' \item{radi:} measurements of otolith growth rings (in mm)
+#' \item{agei:} age estimation of fish
+#' \item{lencap:} length at capture (in mm)
+#' \item{radcap:} radius of otolith at capture (in mm)
+#' \item{l0p:} length of fish at hatching (in mm)
+#' }
+#' @param ... arguments to add to rstan::sampling()
+#' @details  Returns a list of model fit and a dataset called lengths with the estimated lengths at age
+#' \itemize{
+#' \item{l_m:} mean length in mm
+#' \item{l_sd:} sd of length
+#' \item{l_q1:} lower 95% CI quantile
+#' \item{l_q3:} upper 95% CI quantile
+#' }
+#'
+#' Input data should include radi at age 0 measurements as well,
+#' but can handle missing data (NA) for the cases where it is not possible to measure the radius at hatching
+#' @import dplyr
+#' @import rstan
+#' @export bcalc
+
+
+bcalc_bayes <- function(data, ...){
+  
+  if(!"radi" %in% colnames(data)){
+    warning("data not in correct format")
+    return(NA)
+  }
+  
+  if(!"agei" %in% colnames(data)){
+    warning("data not in correct format")
+    return(NA)
+  }
+  if(!"radcap" %in% colnames(data)){
+    warning("data not in correct format")
+    return(NA)
+  }
+  if(!"lencap" %in% colnames(data)){
+    warning("data not in correct format")
+    return(NA)
+  }
+  if(!"id"   %in% colnames(data)){
+    warning("data not in correct format")
+    return(NA)
+  }
+  if(!"l0p"  %in% colnames(data)){
+    warning("data not in correct format")
+    return(NA)
+  }
   
   if (length(which(!is.na(data[data$agei == 0, "radi"])))<2){
     warning("At least 2 known measurements of r0p are needed")
@@ -33,13 +87,11 @@ bcalc_bayes <- function(data){
     )
     
     
-    fit <- rstan::sampling(bcalc_stan, sdata, chains = 4)
+    fit <- rstan::sampling(stan_bcalc, sdata, chains = 4, ...)
     
-    ll <- rstan::extract(fit, "l")[[1]] 
+    ll <- rstan::extract(fit, "l")[[1]]
     
     lengths <- data.frame(
-      family = data$family,
-      species = data$species,
       id = data$id,
       age = data$agei,
       l_m = apply(ll, 2, mean),
