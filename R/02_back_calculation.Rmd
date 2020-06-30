@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FA
 source("functions/bcalc_freq.R")
 source("functions/bcalc_bayes.R")
 
-# 2. Recquired packages ----
+# 2. Required packages ----
 
 library(plyr)
 library(tidyverse)

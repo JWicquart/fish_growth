@@ -231,8 +231,41 @@ ggplotly(A)
 
 
 
+# Annex
 
+```{r}
 
+# 1. Extract the characteristics of individual used as otoliths section examples ----
+
+sections_example <- data_complete %>% 
+  filter(ID %in% c("AC_LI_MA_03_17_221", "AC_NI_MA_03_17_118", "AC_PY_MA_03_17_009", "MOO18FE167",
+                   "GAM18_B112", "CT_MA_MA_03_17_396", "GAM18_A033", "GAM18_A059", "GAM18_B080", # Acanthuridae
+                   "OS_AP_MA_03_17_284", "PR_TA_MA_03_17_101", # Apogonidae
+                   "OD_NI_MA_03_17_045", "BA_UN_MO_03_16_003", # Balistidae
+                   "GAM18_A100", # Chaetodontidae
+                   "GAM18_A156", "SA_MI_MA_03_17_128", # Holocentridae
+                   "GAM18_B066", "GAM18_A011", "GAM18_A214", # Labridae
+                   "GAM18_B105", "GAM18_B093", # Lethrinidae
+                   "LU_GI_MA_03_17_058", "GAM18_B099", # Lutjanidae
+                   "GAM18_B129", # Mullidae
+                   "GAM18_A135", "CE_BI_MO_03_16_002", "GAM18_B056", "GAM18_A162", "DA_AR_MO_03_16_011",
+                   "GAM18_A036", "GAM18_A191", "CH_JO_MO_03_16_013", # Pomacentridae
+                   "GAM18_A120", "SC_PS_TA_03_16_019", # Scaridae
+                   "GAM18_B012", # Scombridae
+                   "GAM18_A073", "GAM18_A089", "EP_FA_MA_03_17_027", "H33", "GAM18_A154", "H70", "GAM18_B052", # Serranidae
+                   "GAM18_B019", "SI_SP_MO_03_16_008")) %>% # Siganidae
+  filter(Agei == 0) %>% 
+  select(Family, Species, ID, Agecpt, Lcpt, Location) %>% 
+  arrange(Family, Species) %>% 
+  mutate(Legend = paste0(row_number(), ". ", Species, " (", Agecpt, " years, ", Lcpt, " mm TL)"))
+
+# 2. Export the txt file needed for the legend of the figure on otoliths sections ----
+
+write.table(paste(sections_example$Legend, collapse = ", "), 
+            "./../doc/03_resubmission_scientific-data/legend_fig_otolith_sections.txt", 
+            col.names = FALSE, row.names = FALSE)
+
+```
 
 # Reproducibility
 
