@@ -17,8 +17,8 @@ library(purrr)
 
 # 3. Source models ----
 
-bcalc_stan <- stan_model("./../stan/bcalc.stan")
-vonbert_stan <- stan_model("./../stan/vonbert.stan")
+bcalc_stan <- stan_model("stan/stan_bcalc.stan")
+vonbert_stan <- stan_model("stan/vonbert.stan")
 
 
 
@@ -91,6 +91,15 @@ growth_extract <-
 write.csv(growth_extract, "results_regressions_vbgc.csv", row.names = FALSE)
 
 
+# extract fitted values
+growth_pred <-
+  lapply(1:nrow(opts), function(x){
+    op <- opts[x,]
+    fitted <- cbind(op, growthmodels[[x]]$fitted)
+    return(fitted)
+  }) %>% plyr::ldply()
+
+write.csv(growth_pred, "results_regressions_fitted.csv", row.names = FALSE)
 
 
 
