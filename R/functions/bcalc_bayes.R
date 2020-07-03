@@ -87,7 +87,7 @@ bcalc_bayes <- function(data, ...){
     )
     
     
-    fit <- rstan::sampling(stan_bcalc, sdata, chains = 4, ...)
+    fit <- rstan::sampling(bcalc_stan, sdata, chains = 4, ...)
     
     ll <- rstan::extract(fit, "l")[[1]]
     

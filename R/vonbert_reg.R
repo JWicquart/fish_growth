@@ -1,9 +1,8 @@
 # 1. Source functions ----
 
-source("R/functions/bcalc_bayes.R")
 source("R/functions/growthreg.R")
 
-# 2. Recquired packages ----
+# 2. Required packages ----
 
 library(stringr)
 library(plyr)
@@ -17,7 +16,6 @@ library(purrr)
 
 # 3. Source models ----
 
-bcalc_stan <- stan_model("stan/bcalc.stan")
 vonbert_stan <- stan_model("stan/vonbert.stan")
 
 
@@ -75,8 +73,6 @@ growthmodels <-
 growth_extract <-
   lapply(1:nrow(opts), function(x){
     op <- opts[x,]
-    op$kmax <- growthmodels[[x]]$summary["kmax", "mean"]
-    op$kmax_sd <- growthmodels[[x]]$summary["kmax", "sd"]
     op$k <- growthmodels[[x]]$summary["k", "mean"]
     op$k_sd <- growthmodels[[x]]$summary["k", "sd"]  
     op$linf <- growthmodels[[x]]$summary["linf", "mean"]
@@ -100,8 +96,9 @@ growth_pred <-
 
 write.csv(growth_pred, "results_regressions_fitted.csv", row.names = FALSE)
 
-
-
+test <- fit$fitted
+plot(test$age, test$yrep_m)
+plot(test$age, test$ypred_m)
 
 
 

@@ -238,7 +238,7 @@ ggplotly(A)
 # 1. Extract the characteristics of individual used as otoliths section examples ----
 
 sections_example <- data_complete %>% 
-  filter(ID %in% c("AC_LI_MA_03_17_221", "AC_NI_MA_03_17_118", "AC_PY_MA_03_17_009", "MOO18FE167",
+  filter(ID %in% c("GAM18_B006", "AC_LI_MA_03_17_221", "AC_NI_MA_03_17_118", "AC_PY_MA_03_17_009", "MOO18FE167",
                    "GAM18_B112", "CT_MA_MA_03_17_396", "GAM18_A033", "GAM18_A059", "GAM18_B080", # Acanthuridae
                    "OS_AP_MA_03_17_284", "PR_TA_MA_03_17_101", # Apogonidae
                    "OD_NI_MA_03_17_045", "BA_UN_MO_03_16_003", # Balistidae
