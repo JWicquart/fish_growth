@@ -54,7 +54,7 @@ growthreg <- function(length, age, id, lmax = 20, linf_m, plot = TRUE, ...){
   
   summary <-  as.data.frame(rstan::summary(fit)$summary)
   
-  result <- summary[c("k", "linf", "t0", "sl", "gp", "kmax"),1:8]
+  result <- summary[c("k", "linf", "t0", "kmax"),1:8]
   
   ee <- rstan::extract(fit)
   y_m <- ee$y_m

@@ -53,7 +53,7 @@ data_complete <- read.csv("./../data/back-calculated-size-at-age_morat-et-al.csv
 
 ## 1.1 Tables
 
-### 1.1.1 Data with Back-calc.
+### 1.1.1 Data with back-calc.
 
 ```{r}
 
@@ -142,7 +142,7 @@ ggplot(data_complete, aes(x = Agei, y = Ri)) +
 
 ```
 
-### 1.2.2 Agei *vs* Li (species)
+### 1.2.2 Agei *vs* Li (sp.)
 
 ```{r fig.width=15, fig.height=40}
 
@@ -181,6 +181,110 @@ ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
 
 # 2. Usual *vs* Back-calculation
 
+```{r fig.height=4, fig.width=6}
+
+# Packages ----
+
+library(brms)
+library(modelr)
+library(tidybayes)
+
+# 1. VBGF with back-calc data ----
+
+# 1.1 Extract species --
+
+vbgf1 <- data_complete %>%
+  filter(Species == "Ostorhinchus apogonoides") %>%
+  select(Family, Location, Species, Agei, Li_sp_m) %>%
+  unique() %>%
+  mutate(Li_sp_m = Li_sp_m/10)
+
+# 1.2 Make the plot --
+
+ggplot(vbgf1) +
+  geom_point(aes(x = Agei, y = Li_sp_m, color = Location)) +
+  facet_wrap(~Species, scales = "free")
+
+# 1.3 VBGF with Bayesian --
+
+fit1 <- brm(
+  bf(Li_sp_m ~ linf * (1 - exp(-k * (Agei - t0))),
+     k ~ 1, linf ~ 1, t0 ~ 1,
+     nl = TRUE),
+  data = vbgf1, family = gaussian(),
+  prior = c(
+    prior(normal(10, 5), nlpar = "linf"),
+    prior(normal(0.5, 0.5), nlpar = "k"),
+    prior(normal(0, 1), nlpar = "t0")
+  ),
+  control = list(adapt_delta = 0.95), iter = 10000, warmup = 5000
+)
+
+# 1.4 Get fitted values --
+
+fitted1 <- vbgf1 %>%
+  data_grid(Agei = seq_range(Agei, n = 50)) %>%
+  add_fitted_draws(fit1) %>% 
+  mutate(Type = "Back-calculated")
+
+# 2. VBGF with raw data ----
+
+# 2.1 Extract species --
+
+vbgf2 <- read.csv("./../data/coral_reef_fishes_data.csv") %>% 
+  filter(species == "Ostorhinchus apogonoides") %>%
+  select(family, location, species, agecap, lencap) %>%
+  unique() %>%
+  filter(!agecap == 0) %>%
+  mutate(lencap = lencap/10)
+
+# 2.2 Make the plot --
+
+ggplot(vbgf2) +
+  geom_point(aes(x = agecap, y = lencap, color = location)) +
+  facet_wrap(~species, scales = "free") 
+
+# 2.3 VBGF with Bayesian --
+
+fit2 <- brm(
+  bf(lencap ~ linf * (1 - exp(-k * (agecap - t0))),
+     k ~ 1, linf ~ 1, t0 ~ 1,
+     nl = TRUE),
+  data = vbgf2, family = gaussian(),
+  prior = c(
+    prior(normal(10, 5), nlpar = "linf"),
+    prior(normal(0.5, 0.5), nlpar = "k"),
+    prior(normal(0, 1), nlpar = "t0")
+  ),
+  control = list(adapt_delta = 0.95), iter = 10000, warmup = 5000
+)
+
+# 2.4 Get fitted values --
+
+fitted2 <- vbgf2 %>%
+  data_grid(agecap = seq_range(agecap, n = 50)) %>%
+  add_fitted_draws(fit2) %>% 
+  rename(Agei = agecap) %>% 
+  mutate(Type = "Raw")
+
+# 3. Comparisons ----
+
+fitted_all <- bind_rows(fitted1, fitted2)
+
+vbgf_all <- vbgf2 %>% 
+  rename(Family = family, Location = location, Species = species, Agei = agecap, Li_sp_m = lencap) %>% 
+  mutate(Type = "Raw") %>% 
+  bind_rows(., vbgf1 %>% 
+                  mutate(Type = "Back-calculated"))
+
+ggplot() +
+  stat_lineribbon(data = fitted_all, aes(x = Agei, y = .value, fill = Type, color = Type), alpha = 0.3) +
+  geom_point(data = vbgf_all, aes(x = Agei, y = Li_sp_m, fill = Type), color = "black", shape = 21, show.legend = FALSE) +
+  facet_wrap(~Species, scales = "free") +
+  labs(x = "Age i", y = "Length at age i") +
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+
+```
 
 
 
