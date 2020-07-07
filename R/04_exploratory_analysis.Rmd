@@ -1,0 +1,422 @@
+---
+title: "Exploratory analysis and QAQC"
+author : "Jeremy Wicquart"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    fig_caption: yes
+    theme: "cosmo"
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FALSE, warning = FALSE, fig.align = "center")
+
+```
+
+# Defining functions and packages
+
+```{r base}
+
+# 1. Source functions ----
+
+source("functions/graphical_par.R")
+source("functions/theme_graph.R")
+source("functions/pred_vbgf.R")
+
+# 2. Required packages ----
+
+library(tidyverse)
+library(kableExtra)
+library(formattable)
+library(rfishbase)
+library(readxl)
+library(plotly)
+library(fishflux)
+
+# 3. Set theme_graph() as the default ggplot theme ----
+
+theme_set(theme_graph())
+
+# 4. Load data ----
+
+data_complete <- read.csv("./../data/back-calculated-size-at-age_morat-et-al.csv")
+
+```
+
+# 1. Data exploration
+
+## 1.1 Tables
+
+### 1.1.1 Data with back-calc.
+
+```{r}
+
+data_complete %>% 
+  filter(!is.na(Li_sp_m)) %>% 
+  summarize_at(vars("ID", "Species", "Family"), n_distinct, na.rm = TRUE) %>% 
+  bind_rows(data_complete %>%
+              summarize_at(vars("ID", "Species", "Family"), n_distinct, na.rm = TRUE), .) %>% 
+  mutate(Type = c("All data", "Back-calculated"), .before = 1) %>% 
+  kable(., 
+        col.names = c("", "Individual", "Species", "Family"), 
+        caption = "Table 1. Comparison of numbers of individuals, species and family for the overall dataset and for back-calculated data") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+### 1.1.2 Individual by species
+
+```{r}
+
+data_complete %>%
+  group_by(Species) %>% 
+  summarise(n = length(unique(ID)),
+        min_lencap = round(min(Lcpt, na.rm = TRUE), 0),
+        max_lencap = round(max(Lcpt, na.rm = TRUE), 0),
+        max_age = max(Agei, na.rm = TRUE)) %>% 
+  kable(., 
+        col.names = c("Species", "n", "Min length (TL, mm)", "Max length (TL, mm)", "Age max (years)"),
+        caption = "Table 2. Number of individuals, minimum and maximum total length (mm) and maximum age, by species") %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, italic = T)
+
+```
+
+### 1.1.3 Individuals by location
+
+```{r}
+
+data_complete %>%
+  group_by(Species, Location) %>% 
+  summarise(n = length(unique(ID))) %>% 
+  pivot_wider(names_from = Location, values_from = n) %>% 
+  mutate(Gambiers = cell_spec(Gambiers, "html", color = ifelse(is.na(Gambiers), "white", "#446CB3")),
+         Hao = cell_spec(Hao, "html", color = ifelse(is.na(Hao), "white", "#446CB3")),
+         Marquesas = cell_spec(Marquesas, "html", color = ifelse(is.na(Marquesas), "white", "#446CB3")),
+         Moorea = cell_spec(Moorea, "html", color = ifelse(is.na(Moorea), "white", "#446CB3")),
+         Manuae = cell_spec(Manuae, "html", color = ifelse(is.na(Manuae), "white", "#446CB3")),
+         Tuamotu = cell_spec(Tuamotu, "html", color = ifelse(is.na(Tuamotu), "white", "#446CB3"))) %>% 
+  kable(., 
+        format = "html", escape = FALSE,
+        caption = "Table 3. Number of individuals of each species by location") %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, italic = T)
+
+```
+
+### 1.1.4 Number of NA
+
+```{r}
+
+# 1. Number of NA by variable
+
+data_complete %>%
+  summarise_all(~(sum(is.na(.)))) %>% 
+  t(.) %>% 
+  as.data.frame() %>% 
+  kable(., col.names = c("NA"), caption = "Table 4. Number of rows with Non-Available (NA) data by variable") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## 1.2 Plot
+
+### 1.2.1 Agei *vs* Ri
+
+```{r fig.width=15, fig.height=30, fig.cap="Figure 1. Relation between otolith radius (Ri) and age (Agei)."}
+
+ggplot(data_complete, aes(x = Agei, y = Ri)) +
+  geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
+  theme(strip.text.x = element_text(size = 8, face = "italic"),
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black")) +
+  facet_wrap(~Species, scales = "free", ncol = 5) +
+  labs(x = "Age (years)", y = "Radius at age i (mm)")
+
+```
+
+### 1.2.2 Agei *vs* Li (sp.)
+
+```{r fig.width=15, fig.height=30, fig.cap="Figure 2. Relation between length (TL, mm) and age by species."}
+
+ggplot(data_complete, aes(x = Agei, y = Li_sp_m)) +
+  geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
+  theme(strip.text.x = element_text(size = 8),
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black"),
+        strip.text.y = element_text(angle = 360, face = "italic")) +
+  facet_wrap(~Species, scales = "free", ncol = 5) +
+  labs(x = "Age (years)", y = "Length at age i (mm)")
+
+```
+
+### 1.2.3 Agei *vs* Li (sp. and loc.)
+
+```{r fig.width=15, fig.height=45, fig.cap="Figure 3. Relation between length (TL, mm) and age by species and location."}
+
+ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
+  geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
+  theme(strip.text.x = element_text(size = 8),
+        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+        plot.title = element_text(colour = col_color_graph),
+        plot.subtitle = element_text(colour = "black"),
+        strip.text.y = element_text(angle = 360, face = "italic")) +
+  facet_grid(Species~Location, scales = "free") +
+  labs(x = "Age (years)", y = "Length at age i (mm)")
+
+```
+
+# 2. VBGF results
+
+## 2.1 Growth parameters
+
+```{r}
+
+# 1. Growth parameters ----
+
+read.csv("./../data/results_regressions_vbgc.csv") %>% 
+  mutate(k = paste0(round(k, 3), " (", round(k_sd, 3), ")"),
+         linf = paste0(round(linf, 3), " (", round(linf_sd, 3), ")"),
+         t0 = paste0(round(t0, 3), " (", round(t0_sd, 3), ")")) %>% 
+  select(Species, Location, linf, k, t0) %>% 
+  kable(., 
+        col.names = c("Species", "Location", "Linf", "K", "t0"), 
+        caption = "Table 5. Values of Von Bertalanffy parameters estimated through Bayesian framework by species and location. Standard deviation are the values in parentheses. Linf is expressed in TL and cm.") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## 2.2 Growth curves
+
+```{r fig.width=15, fig.height=45, fig.cap="Figure 4. Relation between length (TL, mm) and age by species and location."}
+
+# 1. Growth curves ----
+
+read.csv("./../data/results_regressions_prediction.csv") %>% 
+  ggplot(data = .) +
+    geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq), fill = "#86e2d5", alpha = 0.6) +
+    geom_line(aes(x = age, y = ypred_m), color = "#2abb9b") +
+    geom_point(data = data_complete %>%
+                 mutate(Li_sp_m = Li_sp_m/10), 
+               aes(x = Agei, y = Li_sp_m), shape = 21, size = 0.75, color = "black", fill = "#2abb9b") +
+    facet_grid(Species~Location, scales = "free") +
+    lims(y = c(0, NA)) +
+    theme(strip.text.y = element_text(angle = 360, face = "italic")) +
+    labs(x = "Age (years)", y = "Length at age i (TL, cm)")
+
+```
+
+# 3. Raw *vs* Back-calculation
+
+## 3.1 Growth parameters
+
+```{r}
+
+
+
+
+```
+
+## 3.2 Growth curves
+
+```{r}
+
+
+
+
+```
+
+# 4. Comparison with literature
+
+```{r}
+
+# 1. Extract data from fishbase ----
+
+# 1.1 Extract VBGF parameters estimates from fishbase --
+
+fishbase_vbgf <- growth_params(unique(data_complete$Species)) %>% 
+  select(-method, -comments) %>% 
+  rename(Species = species)
+
+# 1.2 Extract maximum weight (Wmax), length (Lmax) and age (tmax) from fishbase --
+
+fishbase_vbgf <- popchar(unique(data_complete$Species)) %>% 
+  select(Species, Wmax, Lmax, tmax, Locality, SourceRef) %>% 
+  full_join(., fishbase_vbgf) %>% 
+  rename(RefNo = SourceRef)
+
+# 1.3 Extract references from fishbase --
+
+fishbase_vbgf <- references(unique(fishbase_vbgf$RefNo)) %>% 
+  select(RefNo, ShortCitation, Title, Source, RefType) %>% 
+  rename() %>% 
+  full_join(., fishbase_vbgf)
+
+```
+
+## 4.1 Growth parameters
+
+```{r}
+
+# 1. Comparison of VBGF parameters between our study and literature ----
+
+read.csv("./../data/results_regressions_vbgc.csv") %>% 
+  mutate(k = paste0(round(k, 3), " (", round(k_sd, 3), ")"),
+         linf = paste0(round(linf, 3), " (", round(linf_sd, 3), ")"),
+         t0 = paste0(round(t0, 3), " (", round(t0_sd, 3), ")")) %>% 
+  select(Species, Location, linf, k, t0) %>% 
+  rename(Linf = linf) %>% 
+  mutate(ShortCitation = "Morat et al. 2020") %>% 
+  full_join(., fishbase_vbgf %>% 
+                 select(-Wmax, -Lmax, -tmax, -RefType, -RefNo, -Title, -Source) %>% 
+                 rename(Location = Locality) %>% 
+                 mutate(k = as.character(k),
+                        Linf = as.character(Linf),
+                        t0 = as.character(t0)) %>% 
+                 filter(!(is.na(k)), !(is.na(Linf)), !(is.na(t0)))) %>% 
+  arrange(Species) %>% 
+  kable(.,
+        format = "html", escape = FALSE,
+        col.names = c("Species", "Location", "Linf", "K", "t0", "Reference"), 
+        caption = "Table 6. Comparison between .") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+## 4.2 Growth curves
+
+```{r fig.height=20, fig.width=12}
+
+# 1. Get predictions from fishbase data ----
+
+fishbase_vbgf_pred <- fishbase_vbgf %>% 
+  filter(!(is.na(k)), !(is.na(Linf)), !(is.na(t0))) %>% 
+  mutate(Line = row_number()) %>% 
+  group_by(Line) %>% 
+  do(pred_vbgf(data = .))
+
+# 2. Load predictions from back-calculated data (our study) ----
+
+backcalc_vbgf_pred <- read.csv("./../data/results_regressions_prediction.csv")
+
+# 3. Make the plot ----
+
+plot_final <- ggplot() +
+  geom_ribbon(data = backcalc_vbgf_pred, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, group = Location), 
+              fill = "#86e2d5", alpha = 0.4) +
+  geom_line(data = backcalc_vbgf_pred, aes(x = age, y = ypred_m, group = Location), size = 0.7, color = "#2abb9b") +
+  geom_line(data = fishbase_vbgf_pred, aes(x = Agei, y = Li, group = as.factor(Line), text = ShortCitation), size = 0.7) +
+  facet_wrap(~Species, ncol = 5, scales = "free") +
+  labs(x = "Age i", y = "Length (cm)") +
+  theme(strip.text.x = element_text(face = "italic"))
+
+plot_final
+
+```
+
+```{r fig.height=15, fig.width=9}
+
+# 4. Convert to plotly ----
+
+ggplotly(plot_final)
+
+```
+
+## 4.3 Maximum age
+
+```{r}
+
+# 1. Comparison of the maximum age between our study and literature ----
+
+fishbase_vbgf %>% 
+  filter(!(is.na(RefNo))) %>% 
+  group_by(Species) %>% 
+  summarise(tmax = max(tmax),
+            Lmax = max(Lmax)) %>% 
+  filter_at(vars(tmax, Lmax), any_vars(!(is.na(.)))) %>% 
+  left_join(., fishbase_vbgf %>% 
+              filter(!(is.na(RefNo)))) %>% 
+  select(-Wmax, -k, -Linf, -t0) %>% 
+  unique() %>% 
+  right_join(., data_complete %>% 
+                  select(Species, Agecpt, Lcpt) %>% 
+                  group_by(Species) %>% 
+                  summarise(Agecpt = max(Agecpt),
+                            Lcpt = max(Lcpt))) %>% 
+  # Make the HTML table
+  mutate(Lcpt = Lcpt/10) %>% 
+  select(Species, Lcpt, Agecpt, Lmax, tmax, ShortCitation, Locality) %>% 
+  mutate(Species = cell_spec(Species, color = "black"),
+         Lcpt = cell_spec(Lcpt, color = ifelse(is.na(Lmax), "black", ifelse(Lcpt > Lmax, "#d91e18", "#00b16a"))),
+         Agecpt = cell_spec(Agecpt, color = ifelse(is.na(tmax), "black", ifelse(Agecpt > tmax, "#d91e18", "#00b16a"))),
+         Lmax = cell_spec(Lmax, "html", color = ifelse(is.na(Lmax), "white", "black")),
+         tmax = cell_spec(tmax, "html", color = ifelse(is.na(tmax), "white", "black")),
+         ShortCitation = cell_spec(ShortCitation, "html", color = ifelse(is.na(ShortCitation), "white", "black")),
+         Locality = cell_spec(Locality, "html", color = ifelse(is.na(Locality), "white", "black"))) %>% 
+  kable(., 
+        format = "html", escape = FALSE,
+        col.names = c("Species", "Lmax", "Agemax", "Lmax", "Agemax", "Reference", "Location"),
+        caption = "Table 4. Comparison of maximum length (Lmax) and age (Agemax) between our study and the litterature. Red color indicates Lmax and Agemax values for our study greater than Lmax and Agemax reported in litterature, green color indicates lower values.") %>%
+  kable_styling("striped") %>% 
+  column_spec(1, italic = T) %>%
+  add_header_above(c(" " = 1, "Our Study" = 2, "Litterature" = 4))
+
+```
+
+# 5. Annex
+
+```{r}
+
+# 1. Extract the characteristics of individual used as otoliths section examples ----
+
+sections_example <- data_complete %>% 
+  filter(ID %in% c("GAM18_B006", "AC_LI_MA_03_17_221", "AC_NI_MA_03_17_118", "AC_PY_MA_03_17_009", "MOO18FE167",
+                   "GAM18_B112", "CT_MA_MA_03_17_396", "GAM18_A033", "GAM18_A059", "GAM18_B080", # Acanthuridae
+                   "OS_AP_MA_03_17_284", "PR_TA_MA_03_17_101", # Apogonidae
+                   "OD_NI_MA_03_17_045", "BA_UN_MO_03_16_003", # Balistidae
+                   "GAM18_A100", # Chaetodontidae
+                   "GAM18_A156", "SA_MI_MA_03_17_128", # Holocentridae
+                   "GAM18_B066", "GAM18_A011", "GAM18_A214", # Labridae
+                   "GAM18_B105", "GAM18_B093", # Lethrinidae
+                   "LU_GI_MA_03_17_058", "GAM18_B099", # Lutjanidae
+                   "GAM18_B129", # Mullidae
+                   "GAM18_A135", "CE_BI_MO_03_16_002", "GAM18_B056", "GAM18_A162", "DA_AR_MO_03_16_011",
+                   "GAM18_A036", "GAM18_A191", "CH_JO_MO_03_16_013", # Pomacentridae
+                   "GAM18_A120", "SC_PS_TA_03_16_019", # Scaridae
+                   "GAM18_B012", # Scombridae
+                   "GAM18_A073", "GAM18_A089", "EP_FA_MA_03_17_027", "H33", "GAM18_A154", "H70", "GAM18_B052", # Serranidae
+                   "GAM18_B019", "SI_SP_MO_03_16_008")) %>% # Siganidae
+  filter(Agei == 0) %>% 
+  select(Family, Species, ID, Agecpt, Lcpt, Location) %>% 
+  arrange(Family, Species) %>% 
+  mutate(Legend = paste0(row_number(), ". ", Species, " (", Agecpt, " years, ", Lcpt, " mm TL)"))
+
+# 2. Export the txt file needed for the legend of the figure on otoliths sections ----
+
+write.table(paste(sections_example$Legend, collapse = ", "), 
+            "./../doc/03_resubmission_scientific-data/legend_fig_otolith_sections.txt", 
+            col.names = FALSE, row.names = FALSE)
+
+```
+
+# Reproducibility
+
+```{r reprod}
+
+# 1. Reproducibility ----
+
+sessionInfo()
+
+```
+
+---
+Jeremy WICQUART | jeremywicquart@gmail.com | `r format(Sys.time())`
