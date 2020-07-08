@@ -43,7 +43,7 @@ model {
     mu[n] = nlp_linf[n] * (1 - exp( - exp(nlp_sl[n] * log(nlp_linf[n]) + nlp_gp[n]) * (x[n] - nlp_t0[n]))); // expression "exp(nlp_sl[n] * log(nlp_linf[n]) + nlp_gp[n])" equals k, see Morais et al. 2018
   }
   // priors including all constants
-  target += normal_lpdf(t0 | -0.5, 1);
+  target += normal_lpdf(t0 | 0, 5);
   target += normal_lpdf(linf | linf_prior, 5);
   target += normal_lpdf(sl | -2.3, 0.22);
   target += normal_lpdf(gp | 3, 2);

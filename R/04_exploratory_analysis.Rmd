@@ -183,15 +183,17 @@ ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
 
 # 1. Growth parameters ----
 
-read.csv("./../data/results_regressions_vbgc.csv") %>% 
+read.csv("./../data/03_back-calculated_vbgf_predictions.csv") %>% 
   mutate(k = paste0(round(k, 3), " (", round(k_sd, 3), ")"),
          linf = paste0(round(linf, 3), " (", round(linf_sd, 3), ")"),
          t0 = paste0(round(t0, 3), " (", round(t0_sd, 3), ")")) %>% 
   select(Species, Location, linf, k, t0) %>% 
+  arrange(Species) %>% 
   kable(., 
         col.names = c("Species", "Location", "Linf", "K", "t0"), 
         caption = "Table 5. Values of Von Bertalanffy parameters estimated through Bayesian framework by species and location. Standard deviation are the values in parentheses. Linf is expressed in TL and cm.") %>% 
-  kable_styling(bootstrap_options = c("striped", "hover"))
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, italic = T)
 
 ```
 
@@ -201,7 +203,7 @@ read.csv("./../data/results_regressions_vbgc.csv") %>%
 
 # 1. Growth curves ----
 
-read.csv("./../data/results_regressions_prediction.csv") %>% 
+read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>% 
   ggplot(data = .) +
     geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq), fill = "#86e2d5", alpha = 0.6) +
     geom_line(aes(x = age, y = ypred_m), color = "#2abb9b") +
@@ -229,8 +231,6 @@ read.csv("./../data/results_regressions_prediction.csv") %>%
 ## 3.2 Growth curves
 
 ```{r}
-
-
 
 
 ```
@@ -288,7 +288,8 @@ read.csv("./../data/results_regressions_vbgc.csv") %>%
         format = "html", escape = FALSE,
         col.names = c("Species", "Location", "Linf", "K", "t0", "Reference"), 
         caption = "Table 6. Comparison between .") %>% 
-  kable_styling(bootstrap_options = c("striped", "hover"))
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, italic = T)
 
 ```
 
@@ -366,7 +367,7 @@ fishbase_vbgf %>%
         format = "html", escape = FALSE,
         col.names = c("Species", "Lmax", "Agemax", "Lmax", "Agemax", "Reference", "Location"),
         caption = "Table 4. Comparison of maximum length (Lmax) and age (Agemax) between our study and the litterature. Red color indicates Lmax and Agemax values for our study greater than Lmax and Agemax reported in litterature, green color indicates lower values.") %>%
-  kable_styling("striped") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover")) %>% 
   column_spec(1, italic = T) %>%
   add_header_above(c(" " = 1, "Our Study" = 2, "Litterature" = 4))
 
