@@ -1,31 +1,58 @@
 # 1. Required packages ----
 
 library(tidyverse)
-library(plyr)
-library(rfishbase)
+library(readxl)
 library(brms)
-library(fishflux)
+library(rfishbase)
 
-data_complete <- read.csv("data/back-calculated-size-at-age_morat-et-al.csv")
+# 2. Load data ----
 
-# 2. Extract parameters from fishbase to get the priors ----
+data_complete <- read.csv("data/back-calculated-size-at-age_morat-et-al.csv") %>%
+  select(Family, Genus, Species, ID, Agecpt, Lcpt, Location, Observer) %>% 
+  unique() %>%
+  dplyr::group_by(Species, Location) %>%
+  dplyr::mutate(n = length(unique(ID))) %>%
+  filter(n >= 10) %>% # filter with at least 10 replicates
+  ungroup() %>% 
+  dplyr::mutate(Lcpt = Lcpt/10) # Convert to cm
 
-fishbase_priors <- growth_params(unique(data_complete$Species)) %>% 
-  group_by(species) %>% 
-  dplyr::summarise(k = mean(k, na.rm = TRUE),
-            Linf = mean(Linf, na.rm = TRUE)) %>% 
-  full_join(., rfishbase::species(unique(data_complete$Species), fields = c("Species", "Length")) %>% 
-              dplyr::rename(species = Species) %>% 
-              group_by(species) %>% 
-              dplyr::summarise(Lmax = mean(Length, na.rm = TRUE)) %>% 
-              as.data.frame()) %>% 
-  mutate_all(~replace(., is.nan(.), NA))
+# 3. Use parameters from literature to get the priors ----
 
-# 3. Extract all unique combinations per species and location ----
+# 3.1 Load file and misc modifications --
+
+vbgf_literature <- read_excel("data/von-bertalanffy-literature.xlsx", sheet = 1) %>% 
+  dplyr::mutate(Linf = ifelse(Size_unit == "cm", Linf*10, Linf),
+                Size_max = ifelse(Size_unit == "cm", Size_max*10, Size_max)) %>% # Convert all length values to mm
+  select(-Family, -Genus) # Remove Family and Genus to add those level through fishbase
+
+# 3.2 Check validity of species names --
+
+vbgf_literature %>% 
+  select(Species) %>% 
+  unique() %>% 
+  left_join(., load_taxa()) %>% 
+  filter(is.na(Genus))
+
+# 3.3 Apply the corrections --
+
+vbgf_literature <- vbgf_literature %>% 
+  dplyr::mutate(Species = str_replace_all(Species, c("Acanthurus chirugus" = "Acanthurus chirurgus",
+                                                     "Chlorurus microrbinos" = "Chlorurus microrhinos",
+                                                     "Scarus psitticus" = "Scarus psittacus",
+                                                     "Cetoscarus bicolour" = "Cetoscarus bicolor"))) %>% 
+  dplyr::mutate(Species = as.factor(Species)) %>% 
+  dplyr::select(Species, Linf, K) %>% 
+  dplyr::group_by(Species) %>% 
+  dplyr::summarise(Linf = mean(Linf, na.rm = TRUE),
+                   K = mean(K, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  rename(k = K)
+  
+# 4. Extract all unique combinations per species and location ----
 
 opts <- unique(select(data_complete, Species, Location))
 
-# 4. Make a function to fit model by species ----
+# 5. Make a function to fit model by species ----
 
 vbgf_bayesian <- function(data, dataprior){
   
@@ -34,13 +61,13 @@ vbgf_bayesian <- function(data, dataprior){
     unique() %>% 
     as.character()
   
-  prior_k <- ifelse(is.na(as.numeric(dataprior[which(dataprior$species == species_i), "k"])), 
+  prior_k <- ifelse(is.na(as.numeric(dataprior[which(dataprior$Species == species_i), "k"])), 
                     0.5,
-                    as.numeric(dataprior[which(dataprior$species == species_i), "k"]))
+                    as.numeric(dataprior[which(dataprior$Species == species_i), "k"]))
   
-  prior_linf <- ifelse(is.na(as.numeric(dataprior[which(dataprior$species == species_i),"Linf"])),
-                       as.numeric(dataprior[which(dataprior$species == species_i),"Lmax"]),
-                       as.numeric(dataprior[which(dataprior$species == species_i),"Linf"]))
+  prior_linf <- ifelse(is.na(as.numeric(dataprior[which(dataprior$Species == species_i),"Linf"])),
+                       10,
+                       as.numeric(dataprior[which(dataprior$Species == species_i),"Linf"]))
   
   priors <- c(
     prior_string(paste0("normal(", prior_linf, ", 5)"), lb = 0, nlpar = "linf"),
@@ -48,7 +75,7 @@ vbgf_bayesian <- function(data, dataprior){
     prior(normal(0, 0.5), lb = -0.5, ub = 0.5, nlpar = "t0"))
   
   
-  fit <- brm(bf(Li_sp_m ~ linf * (1 - exp(-k * (Agei - t0))), k ~ 1, linf ~ 1, t0 ~ 1, nl = TRUE),
+  fit <- brm(bf(Lcpt ~ linf * (1 - exp(-k * (Agecpt - t0))), k ~ 1, linf ~ 1, t0 ~ 1, nl = TRUE),
              data = data, 
              family = gaussian(),
              prior = priors,
@@ -58,58 +85,59 @@ vbgf_bayesian <- function(data, dataprior){
   
 }
 
-# 5. Run models ----
+# 6. Run models ----
 
 growthmodels <-
   lapply(1:nrow(opts), function(x){
     
-    sp <- opts[x,"Species"]
-    loc <- opts[x, "Location"]
+    sp <- as.character(opts[x,"Species"])
+    loc <- as.character(opts[x, "Location"])
     
-    data_prior <- filter(fishbase_priors, species == sp)
+    data_prior <- vbgf_literature %>% 
+      filter(Species == sp)
     
-    data_raw <- read.csv("data/coral_reef_fishes_data.csv") %>% 
-      dplyr::rename(Family = family, Location = location, Species = species, Agei = agecap, Li_sp_m = lencap) %>% 
-      select(Family, Location, Species, Agei, Li_sp_m) %>%
-      filter(Species == sp, Location == loc) %>% 
-      unique() %>%
-      mutate(Li_sp_m = Li_sp_m/10)
+    data_raw <- data_complete %>% 
+      filter(Species == sp, Location == loc)
     
     vbgf_bayesian(data_raw, data_prior)
     
 })
 
-# 6. Extract parameters ----
+# 7. Extract parameters ----
 
 lapply(1:nrow(opts), function(x){
   
   summary <- posterior_summary(growthmodels[[x]], fixed = TRUE) %>% 
     as.data.frame() %>% 
-    mutate(Parameter = row.names(.), .before = 1) %>% 
+    dplyr::mutate(Parameter = row.names(.), .before = 1) %>% 
     filter(Parameter %in% c("b_k_Intercept", "b_linf_Intercept", "b_t0_Intercept")) %>% 
     mutate(Parameter = str_replace_all(Parameter, c("b_k_Intercept" = "K",
                                                     "b_linf_Intercept" = "Linf",
-                                                    "b_t0_Intercept" = "t0")))
+                                                    "b_t0_Intercept" = "t0"))) %>% 
+    mutate(Species = as.character(opts[x,"Species"]),
+           Location = as.character(opts[x,"Location"]), .before = 1)
   
   return(summary)
 }) %>% 
   plyr::ldply() %>% 
   write.csv(., "data/03_raw_vbgf_predictions.csv", row.names = FALSE)
 
-# 7. Extract fitted values ----
+# 8. Extract fitted values ----
 
 lapply(1:nrow(opts), function(x){
   op <- opts[x,]
   fitted <- op %>% 
-    cbind(Agei = seq(from = 1,
+    cbind(Agei = seq(from = 0,
                      to = data_complete %>% 
-                       filter(Location == op$Location, Species == op$Species) %>% 
+                       filter(Location == as.character(op$Location), 
+                              Species == as.character(op$Species)) %>% 
                        dplyr::summarise(max(Agecpt)) %>% 
                        as.numeric(), 
                      by = 0.1),
-          fitted(growthmodels[[x]], newdata = data.frame(Agei = seq(from = 1, 
+          fitted(growthmodels[[x]], newdata = data.frame(Agecpt = seq(from = 0, 
                                                                     to = data_complete %>% 
-                                                                      filter(Location == op$Location, Species == op$Species) %>% 
+                                                                      filter(Location == as.character(op$Location), 
+                                                                             Species == as.character(op$Species)) %>% 
                                                                       dplyr::summarise(max(Agecpt)) %>% 
                                                                       as.numeric(), 
                                                                     by = 0.1))))

@@ -35,10 +35,8 @@ source("functions/pred_vbgf.R")
 library(tidyverse)
 library(kableExtra)
 library(formattable)
-library(rfishbase)
 library(readxl)
 library(plotly)
-library(fishflux)
 
 # 3. Set theme_graph() as the default ggplot theme ----
 
@@ -199,20 +197,20 @@ read.csv("./../data/03_back-calculated_vbgf_predictions.csv") %>%
 
 ## 2.2 Growth curves
 
-```{r fig.width=15, fig.height=45, fig.cap="Figure 4. Relation between length (TL, mm) and age by species and location."}
+```{r fig.width=15, fig.height=30, fig.cap="Figure 4. Relation between length (TL, mm) and age by species and location."}
 
 # 1. Growth curves ----
 
 read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>% 
   ggplot(data = .) +
-    geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq), fill = "#86e2d5", alpha = 0.6) +
-    geom_line(aes(x = age, y = ypred_m), color = "#2abb9b") +
+    geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Location), alpha = 0.5) +
+    geom_line(aes(x = age, y = ypred_m, color = Location)) +
     geom_point(data = data_complete %>%
                  mutate(Li_sp_m = Li_sp_m/10), 
-               aes(x = Agei, y = Li_sp_m), shape = 21, size = 0.75, color = "black", fill = "#2abb9b") +
-    facet_grid(Species~Location, scales = "free") +
+               aes(x = Agei, y = Li_sp_m, color = Location), size = 1) +
+    facet_wrap(~Species, scales = "free", ncol = 5) +
     lims(y = c(0, NA)) +
-    theme(strip.text.y = element_text(angle = 360, face = "italic")) +
+    theme(strip.text.x = element_text(face = "italic")) +
     labs(x = "Age (years)", y = "Length at age i (TL, cm)")
 
 ```
@@ -230,8 +228,31 @@ read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>%
 
 ## 3.2 Growth curves
 
-```{r}
+```{r fig.width=15, fig.height=30}
 
+# 1. Transform the data to get only Agecpt and Lcpt ----
+
+data_raw <- read.csv("./../data/back-calculated-size-at-age_morat-et-al.csv") %>%
+  select(Family, Genus, Species, ID, Agecpt, Lcpt, Location, Observer) %>% 
+  unique() %>%
+  dplyr::group_by(Species, Location) %>%
+  dplyr::mutate(n = length(unique(ID))) %>%
+  filter(n >= 10) %>% # filter with at least 10 replicates
+  ungroup() %>% 
+  dplyr::mutate(Lcpt = Lcpt/10) # Convert to cm
+
+# 2. Make the plot ----
+
+read.csv("./../data/03_raw_vbgf_fitted.csv") %>% 
+  ggplot(data = .) +
+    geom_ribbon(aes(x = Agei, ymin = Q2.5, ymax = Q97.5, fill = Location), alpha = 0.5) +
+    geom_line(aes(x = Agei, y = Estimate, color = Location)) +
+    geom_point(data = data_raw, aes(x = Agecpt, y = Lcpt, color = Location), size = 1) +
+    facet_wrap(~Species, scales = "free", ncol = 5) +
+    lims(y = c(0, NA)) +
+    theme(strip.text.x = element_text(face = "italic")) +
+    labs(x = "Age (years)", y = "Length at age i (TL, cm)") +
+    lims(y = c(0, NA), x = c(0, NA))
 
 ```
 
@@ -239,27 +260,30 @@ read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>%
 
 ```{r}
 
-# 1. Extract data from fishbase ----
+# 1. Import file synthesizing the VBGF parameters from literature ----
 
-# 1.1 Extract VBGF parameters estimates from fishbase --
+vbgf_literature <- read_excel("data/von-bertalanffy-literature.xlsx", sheet = 1) %>% 
+  dplyr::mutate(Linf = ifelse(Size_unit == "cm", Linf*10, Linf),
+                Size_max = ifelse(Size_unit == "cm", Size_max*10, Size_max)) %>% # Convert all length values to mm
+  select(-Family, -Genus) # Remove Family and Genus to add those level through fishbase
 
-fishbase_vbgf <- growth_params(unique(data_complete$Species)) %>% 
-  select(-method, -comments) %>% 
-  rename(Species = species)
+# 2. Check validity of species names ----
 
-# 1.2 Extract maximum weight (Wmax), length (Lmax) and age (tmax) from fishbase --
+vbgf_literature %>% 
+  select(Species) %>% 
+  unique() %>% 
+  left_join(., load_taxa()) %>% 
+  filter(is.na(Genus))
 
-fishbase_vbgf <- popchar(unique(data_complete$Species)) %>% 
-  select(Species, Wmax, Lmax, tmax, Locality, SourceRef) %>% 
-  full_join(., fishbase_vbgf) %>% 
-  rename(RefNo = SourceRef)
+# 3. Apply the corrections and add Family and Genus ----
 
-# 1.3 Extract references from fishbase --
-
-fishbase_vbgf <- references(unique(fishbase_vbgf$RefNo)) %>% 
-  select(RefNo, ShortCitation, Title, Source, RefType) %>% 
-  rename() %>% 
-  full_join(., fishbase_vbgf)
+vbgf_literature <- vbgf_literature %>% 
+  dplyr::mutate(Species = str_replace_all(Species, c("Acanthurus chirugus" = "Acanthurus chirurgus",
+                                                     "Chlorurus microrbinos" = "Chlorurus microrhinos",
+                                                     "Scarus psitticus" = "Scarus psittacus",
+                                                     "Cetoscarus bicolour" = "Cetoscarus bicolor"))) %>% 
+  left_join(., load_taxa() %>% 
+                  select(Species, Genus, Family))
 
 ```
 
@@ -295,27 +319,25 @@ read.csv("./../data/results_regressions_vbgc.csv") %>%
 
 ## 4.2 Growth curves
 
-```{r fig.height=20, fig.width=12}
+```{r fig.height=30, fig.width=15}
 
-# 1. Get predictions from fishbase data ----
+# 1. Get predictions from literature data ----
 
-fishbase_vbgf_pred <- fishbase_vbgf %>% 
-  filter(!(is.na(k)), !(is.na(Linf)), !(is.na(t0))) %>% 
-  mutate(Line = row_number()) %>% 
+vbgf_literature_pred <- vbgf_literature %>% 
+  filter(Species %in% unique(data_complete$Species)) %>% 
+  dplyr::mutate(t0 = ifelse(is.na(t0), 0, t0)) %>% 
+  filter(!(is.na(K)), !(is.na(Linf)), !(is.na(t0))) %>% 
+  dplyr::mutate(Line = row_number()) %>% 
   group_by(Line) %>% 
   do(pred_vbgf(data = .))
 
-# 2. Load predictions from back-calculated data (our study) ----
-
-backcalc_vbgf_pred <- read.csv("./../data/results_regressions_prediction.csv")
-
-# 3. Make the plot ----
+# 2. Make the plot ----
 
 plot_final <- ggplot() +
-  geom_ribbon(data = backcalc_vbgf_pred, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, group = Location), 
-              fill = "#86e2d5", alpha = 0.4) +
-  geom_line(data = backcalc_vbgf_pred, aes(x = age, y = ypred_m, group = Location), size = 0.7, color = "#2abb9b") +
-  geom_line(data = fishbase_vbgf_pred, aes(x = Agei, y = Li, group = as.factor(Line), text = ShortCitation), size = 0.7) +
+  #geom_ribbon(data = backcalc_vbgf_pred, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, group = Location), 
+  #            fill = "#86e2d5", alpha = 0.4) +
+  #geom_line(data = backcalc_vbgf_pred, aes(x = age, y = ypred_m, group = Location), size = 0.7, color = "#2abb9b") +
+  geom_line(data = vbgf_literature_pred, aes(x = Agei, y = Li, group = as.factor(Line), text = Reference), size = 0.7) +
   facet_wrap(~Species, ncol = 5, scales = "free") +
   labs(x = "Age i", y = "Length (cm)") +
   theme(strip.text.x = element_text(face = "italic"))
