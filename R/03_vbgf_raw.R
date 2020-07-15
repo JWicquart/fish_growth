@@ -7,7 +7,7 @@ library(rfishbase)
 
 # 2. Load data ----
 
-data_complete <- read.csv("data/back-calculated-size-at-age_morat-et-al.csv") %>%
+data_complete <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   select(Family, Genus, Species, ID, Agecpt, Lcpt, Location, Observer) %>% 
   unique() %>%
   dplyr::group_by(Species, Location) %>%
@@ -20,7 +20,7 @@ data_complete <- read.csv("data/back-calculated-size-at-age_morat-et-al.csv") %>
 
 # 3.1 Load file and misc modifications --
 
-vbgf_literature <- read_excel("data/von-bertalanffy-literature.xlsx", sheet = 1) %>% 
+vbgf_literature <- read_excel("data/00_von-bertalanffy-literature.xlsx", sheet = 1) %>% 
   dplyr::mutate(Linf = ifelse(Size_unit == "cm", Linf*10, Linf),
                 Size_max = ifelse(Size_unit == "cm", Size_max*10, Size_max)) %>% # Convert all length values to mm
   select(-Family, -Genus) # Remove Family and Genus to add those level through fishbase

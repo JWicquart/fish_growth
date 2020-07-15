@@ -6,7 +6,6 @@ source("R/functions/growthreg.R")
 # 2. Required packages ----
 
 library(tidyverse)
-library(plyr)
 library(rfishbase)
 library(rstan)
 library(parallel)
@@ -19,34 +18,27 @@ vonbert_stan <- stan_model("stan/vonbert.stan")
 
 # 4. Load data ----
 
-bc <- read.csv("data/back-calculated-size-at-age_morat-et-al.csv") %>%
+bc <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   drop_na(Li_sploc_m) %>%
   group_by(ID) %>%
   filter(Agecpt > 2) %>% # filter with maxage > 2
   ungroup() %>%
   dplyr::group_by(Species, Location) %>%
-  dplyr::mutate(nrep = length(unique(ID))) %>%
-  filter(nrep > 4) %>% # filter with at least 3 replicates
+  dplyr::mutate(n = length(unique(ID))) %>%
+  filter(n >= 5) %>% # filter with at least 5 replicates
   ungroup()
 
 # 5. Extract all unique combinations per species and location ----
 
-opts <- unique(select(bc, Location, Species))
+opts <- rfishbase::species(unique(bc$Species), fields = c("Species", "Length")) %>% # Get maximum lengths (Lmax) from fishbase
+  group_by(Species) %>% 
+  dplyr::summarise(lmax = mean(Length, na.rm = TRUE)) %>%
+  ungroup() %>% 
+  as.data.frame() %>% 
+  mutate(lmax = ifelse(Species == "Chlorurus spilurus", 27, lmax)) %>% # Manually add value for missing species
+  right_join(., unique(select(bc, Location, Species))) # Join with unique combinations
 
-# 6. Get maximum lengths (Lmax) from fishbase ----
-
-maxl <- rfishbase::species(opts$Species, fields = c("Species", "Length")) %>%
-  group_by(Species) %>% dplyr::summarise(Lmax = mean(Length, na.rm = TRUE)) %>%
-  as.data.frame()
-
-colnames(maxl) <- c("Species", "lmax")
-
-opts <- left_join(opts, maxl) %>%
-  as.data.frame()
-
-opts[opts$Species == "Chlorurus spilurus", "lmax"] <- 27
-
-# 7. Run models ----
+# 6. Run models ----
 
 growthmodels <- lapply(1:nrow(opts), function(x){
     
@@ -56,39 +48,47 @@ growthmodels <- lapply(1:nrow(opts), function(x){
     
     data <- bc %>% dplyr::filter(Location == loc, Species == sp)
     
-    fit <- growthreg(length = data$Li_sp_m/10,  #function requires cm
+    fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
                      age = data$Agei,
                      id = as.character(data$ID),
-                     lmax = lmax, linf_m = 0.8 * lmax,
+                     lmax = lmax, 
+                     linf_m = 0.8 * lmax,
                      control = list(adapt_delta = 0.999, max_treedepth = 15),
-                     cores = 4, iter = 4000, warmup = 2000,
+                     cores = 4, iter = 5000, warmup = 2500,
                      plot = FALSE)
     
     return(fit)
     
 })
 
-# 8. Extract parameters ----
+# 7. Extract parameters ----
 
 lapply(1:nrow(opts), function(x){
-    op <- opts[x,]
-    op$k <- growthmodels[[x]]$summary["k", "mean"]
-    op$k_sd <- growthmodels[[x]]$summary["k", "sd"]  
-    op$linf <- growthmodels[[x]]$summary["linf", "mean"]
-    op$linf_sd <- growthmodels[[x]]$summary["linf", "sd"]
-    op$t0 <- growthmodels[[x]]$summary["t0", "mean"]
-    op$t0_sd <- growthmodels[[x]]$summary["t0", "sd"]
-    return(op)
+  
+  pred <- growthmodels[[x]]$summary %>% 
+    as.data.frame() %>% 
+    mutate(Parameter = row.names(.)) %>% 
+    filter(Parameter != "kmax") %>% 
+    rename(Estimate = mean, Est.Error = sd, Q2.5 = "2.5%", Q97.5 = "97.5%") %>% 
+    bind_cols(opts[x,]) %>% 
+    select(Species, Location, Parameter, Estimate, Est.Error, Q2.5, Q97.5)
+  
+  return(pred)
+  
 }) %>% 
   plyr::ldply() %>% 
   write.csv(., "data/03_back-calculated_vbgf_predictions.csv", row.names = FALSE)
 
-# 9. Extract fitted values ----
+# 8. Extract fitted values ----
 
 lapply(1:nrow(opts), function(x){
-    op <- opts[x,]
-    fitted <- op %>% cbind(growthmodels[[x]]$fitted)
+  
+    fitted <- growthmodels[[x]]$fitted %>% 
+      as.data.frame() %>% 
+      bind_cols(opts[x,], .)
+    
     return(fitted)
+    
 }) %>% 
   plyr::ldply() %>% 
   write.csv(., "data/03_back-calculated_vbgf_fitted.csv", row.names = FALSE)

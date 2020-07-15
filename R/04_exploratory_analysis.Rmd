@@ -37,6 +37,7 @@ library(kableExtra)
 library(formattable)
 library(readxl)
 library(plotly)
+library(rfishbase)
 
 # 3. Set theme_graph() as the default ggplot theme ----
 
@@ -44,7 +45,7 @@ theme_set(theme_graph())
 
 # 4. Load data ----
 
-data_complete <- read.csv("./../data/back-calculated-size-at-age_morat-et-al.csv")
+data_complete <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv")
 
 ```
 
@@ -137,7 +138,7 @@ ggplot(data_complete, aes(x = Agei, y = Ri)) +
         plot.title = element_text(colour = col_color_graph),
         plot.subtitle = element_text(colour = "black")) +
   facet_wrap(~Species, scales = "free", ncol = 5) +
-  labs(x = "Age (years)", y = "Radius at age i (mm)")
+  labs(x = "Age (years)", y = "Radius (mm)")
 
 ```
 
@@ -153,7 +154,7 @@ ggplot(data_complete, aes(x = Agei, y = Li_sp_m)) +
         plot.subtitle = element_text(colour = "black"),
         strip.text.y = element_text(angle = 360, face = "italic")) +
   facet_wrap(~Species, scales = "free", ncol = 5) +
-  labs(x = "Age (years)", y = "Length at age i (mm)")
+  labs(x = "Age (years)", y = "Length (mm)")
 
 ```
 
@@ -169,7 +170,7 @@ ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
         plot.subtitle = element_text(colour = "black"),
         strip.text.y = element_text(angle = 360, face = "italic")) +
   facet_grid(Species~Location, scales = "free") +
-  labs(x = "Age (years)", y = "Length at age i (mm)")
+  labs(x = "Age (years)", y = "Length (mm)")
 
 ```
 
@@ -182,9 +183,8 @@ ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
 # 1. Growth parameters ----
 
 read.csv("./../data/03_back-calculated_vbgf_predictions.csv") %>% 
-  mutate(k = paste0(round(k, 3), " (", round(k_sd, 3), ")"),
-         linf = paste0(round(linf, 3), " (", round(linf_sd, 3), ")"),
-         t0 = paste0(round(t0, 3), " (", round(t0_sd, 3), ")")) %>% 
+  mutate(Estimate = paste0(round(Estimate, 3), " (", round(Est.Error, 3), ")")) %>% 
+  pivot_wider(c("Species", Location), names_from = Parameter, values_from = Estimate) %>% 
   select(Species, Location, linf, k, t0) %>% 
   arrange(Species) %>% 
   kable(., 
@@ -211,7 +211,10 @@ read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>%
     facet_wrap(~Species, scales = "free", ncol = 5) +
     lims(y = c(0, NA)) +
     theme(strip.text.x = element_text(face = "italic")) +
-    labs(x = "Age (years)", y = "Length at age i (TL, cm)")
+    labs(x = "Age (years)", y = "Length (TL, cm)") +
+    guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5))) +
+    scale_fill_manual(values = palette_location) +
+    scale_color_manual(values = palette_location)
 
 ```
 
@@ -221,38 +224,87 @@ read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>%
 
 ```{r}
 
+# 1. List of species with enough individuals for one location ----
 
+species_list <- c("Abudefduf sexfasciatus", "Acanthurus achilles", "Acanthurus triostegus", 
+                  "Chromis iomelas", "Dascyllus aruanus", "Ostorhinchus apogonoides", 
+                  "Pristiapogon taeniopterus", "Stegastes nigricans")
 
+# 1. Growth parameters ----
+
+read.csv("./../data/03_raw_vbgf_predictions.csv") %>% 
+  filter(Species %in% species_list) %>% 
+  mutate(Value = paste0(round(Estimate, 3), " (", round(Est.Error, 3), ")")) %>% 
+  select(Species, Location, Parameter, Value) %>% 
+  pivot_wider(1:2, names_from = Parameter, values_from = Value) %>% 
+  select(Species, Location, Linf, K, t0) %>% 
+  arrange(Species) %>% 
+  kable(., 
+        col.names = c("Species", "Location", "Linf", "K", "t0"), 
+        caption = "Table 5. Values of Von Bertalanffy parameters estimated through Bayesian framework by species and location. Standard deviation are the values in parentheses. Linf is expressed in TL and cm.") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, italic = T)
 
 ```
 
 ## 3.2 Growth curves
 
-```{r fig.width=15, fig.height=30}
+```{r fig.width=10, fig.height=5}
 
-# 1. Transform the data to get only Agecpt and Lcpt ----
+# 1. Transform the data to get only Agecpt and Lcpt (-> vbgf from raw data) ----
 
-data_raw <- read.csv("./../data/back-calculated-size-at-age_morat-et-al.csv") %>%
+data_raw <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
+  filter(Species %in% species_list) %>% 
   select(Family, Genus, Species, ID, Agecpt, Lcpt, Location, Observer) %>% 
   unique() %>%
   dplyr::group_by(Species, Location) %>%
   dplyr::mutate(n = length(unique(ID))) %>%
   filter(n >= 10) %>% # filter with at least 10 replicates
   ungroup() %>% 
-  dplyr::mutate(Lcpt = Lcpt/10) # Convert to cm
+  dplyr::mutate(Lcpt = Lcpt/10) %>%  # Convert to cm
+  mutate(Type = "Raw")
+
+# 2. Transform the data (-> vbgf from back-calculated data) ----
+
+# 2.1 Points --
+
+data_back_calc_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>% 
+  filter(Species %in% unique(data_raw$Species),
+         Location %in% unique(data_raw$Location),
+         !(Species == "Abudefduf sexfasciatus" & Location == "Moorea"),
+         !(Species == "Acanthurus achilles" & Location == "Gambiers"),
+         !(Species == "Acanthurus triostegus" & Location == "Marquesas")) %>% 
+  dplyr::mutate(Li_sploc_m = Li_sploc_m/10) %>%  # Convert to cm
+  mutate(Type = "Back-calculated")
+
+# 2.2 Curves --
+
+data_back_calc_curve <- read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>% 
+  filter(Species %in% unique(data_raw$Species),
+         Location %in% unique(data_raw$Location)) %>% 
+  mutate(Type = "Back-calculated")
 
 # 2. Make the plot ----
 
 read.csv("./../data/03_raw_vbgf_fitted.csv") %>% 
+  filter(Species %in% species_list) %>% 
+  mutate(Type = "Raw") %>% 
   ggplot(data = .) +
-    geom_ribbon(aes(x = Agei, ymin = Q2.5, ymax = Q97.5, fill = Location), alpha = 0.5) +
-    geom_line(aes(x = Agei, y = Estimate, color = Location)) +
-    geom_point(data = data_raw, aes(x = Agecpt, y = Lcpt, color = Location), size = 1) +
-    facet_wrap(~Species, scales = "free", ncol = 5) +
+    # Raw data
+    geom_ribbon(aes(x = Agei, ymin = Q2.5, ymax = Q97.5, fill = Type), alpha = 0.5) +
+    geom_line(aes(x = Agei, y = Estimate, color = Type)) +
+    geom_point(data = data_raw, aes(x = Agecpt, y = Lcpt, color = Type), size = 1) +
+    # Back-calculated data
+    geom_ribbon(data = data_back_calc_curve, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Type), alpha = 0.5) +
+    geom_line(data = data_back_calc_curve, aes(x = age, y = ypred_m, color = Type)) +
+    geom_point(data = data_back_calc_points, aes(x = Agei, y = Li_sploc_m, color = Type), size = 1) +
+    # Appearance
+    facet_wrap(~Species, scales = "free", ncol = 4) +
     lims(y = c(0, NA)) +
     theme(strip.text.x = element_text(face = "italic")) +
-    labs(x = "Age (years)", y = "Length at age i (TL, cm)") +
-    lims(y = c(0, NA), x = c(0, NA))
+    labs(x = "Age (years)", y = "Length (TL, cm)") +
+    lims(y = c(0, NA), x = c(0, NA)) +
+    guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
 
 ```
 
@@ -262,9 +314,9 @@ read.csv("./../data/03_raw_vbgf_fitted.csv") %>%
 
 # 1. Import file synthesizing the VBGF parameters from literature ----
 
-vbgf_literature <- read_excel("data/von-bertalanffy-literature.xlsx", sheet = 1) %>% 
-  dplyr::mutate(Linf = ifelse(Size_unit == "cm", Linf*10, Linf),
-                Size_max = ifelse(Size_unit == "cm", Size_max*10, Size_max)) %>% # Convert all length values to mm
+vbgf_literature <- read_excel("./../data/00_von-bertalanffy-literature.xlsx", sheet = 1) %>% 
+  dplyr::mutate(Linf = ifelse(Size_unit == "mm", Linf/10, Linf),
+                Size_max = ifelse(Size_unit == "mm", Size_max/10, Size_max)) %>% # Convert all length values to cm
   select(-Family, -Genus) # Remove Family and Genus to add those level through fishbase
 
 # 2. Check validity of species names ----
@@ -283,7 +335,12 @@ vbgf_literature <- vbgf_literature %>%
                                                      "Scarus psitticus" = "Scarus psittacus",
                                                      "Cetoscarus bicolour" = "Cetoscarus bicolor"))) %>% 
   left_join(., load_taxa() %>% 
-                  select(Species, Genus, Family))
+                  select(Species, Genus, Family)) %>% 
+  filter(Species %in% unique(data_complete$Species)) %>% 
+  mutate(Reference = paste0(Reference, " (", Reference_type, ")")) %>%
+  mutate_at(c("Linf", "K", "t0"), as.character) %>% 
+  select(-Genus, -Family, -Size_unit, -Sex, -Reference_type) %>% 
+  arrange(Species)
 
 ```
 
@@ -293,20 +350,14 @@ vbgf_literature <- vbgf_literature %>%
 
 # 1. Comparison of VBGF parameters between our study and literature ----
 
-read.csv("./../data/results_regressions_vbgc.csv") %>% 
-  mutate(k = paste0(round(k, 3), " (", round(k_sd, 3), ")"),
-         linf = paste0(round(linf, 3), " (", round(linf_sd, 3), ")"),
-         t0 = paste0(round(t0, 3), " (", round(t0_sd, 3), ")")) %>% 
+read.csv("./../data/03_back-calculated_vbgf_predictions.csv") %>% 
+  mutate(Estimate = paste0(round(Estimate, 3), " (", round(Est.Error, 3), ")")) %>% 
+  pivot_wider(c("Species", Location), names_from = Parameter, values_from = Estimate) %>% 
   select(Species, Location, linf, k, t0) %>% 
-  rename(Linf = linf) %>% 
-  mutate(ShortCitation = "Morat et al. 2020") %>% 
-  full_join(., fishbase_vbgf %>% 
-                 select(-Wmax, -Lmax, -tmax, -RefType, -RefNo, -Title, -Source) %>% 
-                 rename(Location = Locality) %>% 
-                 mutate(k = as.character(k),
-                        Linf = as.character(Linf),
-                        t0 = as.character(t0)) %>% 
-                 filter(!(is.na(k)), !(is.na(Linf)), !(is.na(t0)))) %>% 
+  rename(Linf = linf, K = k) %>% 
+  mutate(Reference = "This study") %>% 
+  full_join(., vbgf_literature) %>%
+  select(Species, Location, Linf, K, t0, Reference) %>% 
   arrange(Species) %>% 
   kable(.,
         format = "html", escape = FALSE,
@@ -319,28 +370,47 @@ read.csv("./../data/results_regressions_vbgc.csv") %>%
 
 ## 4.2 Growth curves
 
-```{r fig.height=30, fig.width=15}
+```{r fig.height=10, fig.width=15}
 
 # 1. Get predictions from literature data ----
 
 vbgf_literature_pred <- vbgf_literature %>% 
-  filter(Species %in% unique(data_complete$Species)) %>% 
+  # Complete missing Age_max
+  filter(is.na(Age_max)) %>% 
+  left_join(., vbgf_literature %>% 
+              group_by(Species) %>% 
+              summarise(Age_max2 = max(Age_max, na.rm = TRUE)) %>% 
+              mutate(Age_max2 = na_if(Age_max2, -Inf))) %>% 
+  mutate(Age_max = ifelse(is.na(Age_max), Age_max2, Age_max)) %>% 
+  select(-Age_max2) %>% 
+  bind_rows(., vbgf_literature %>% 
+              filter(!(is.na(Age_max)))) %>% 
+  arrange(Species) %>% 
+  # Fix missing t0 to 0
   dplyr::mutate(t0 = ifelse(is.na(t0), 0, t0)) %>% 
   filter(!(is.na(K)), !(is.na(Linf)), !(is.na(t0))) %>% 
+  mutate_at(c("Linf", "K", "t0"), as.numeric) %>% 
+  filter(Species %in% unique(read.csv("./../data/03_back-calculated_vbgf_fitted.csv")$Species)) %>% 
+  # Make the predictions
   dplyr::mutate(Line = row_number()) %>% 
   group_by(Line) %>% 
   do(pred_vbgf(data = .))
 
 # 2. Make the plot ----
 
-plot_final <- ggplot() +
-  #geom_ribbon(data = backcalc_vbgf_pred, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, group = Location), 
-  #            fill = "#86e2d5", alpha = 0.4) +
-  #geom_line(data = backcalc_vbgf_pred, aes(x = age, y = ypred_m, group = Location), size = 0.7, color = "#2abb9b") +
+plot_final <- read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>% 
+  filter(Species %in% unique(vbgf_literature_pred$Species)) %>% 
+  ggplot(data = .) +
+  geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq, group = Location, fill = Location), alpha = 0.5) +
+  geom_line(aes(x = age, y = ypred_m, color = Location), size = 0.7) +
   geom_line(data = vbgf_literature_pred, aes(x = Agei, y = Li, group = as.factor(Line), text = Reference), size = 0.7) +
-  facet_wrap(~Species, ncol = 5, scales = "free") +
-  labs(x = "Age i", y = "Length (cm)") +
-  theme(strip.text.x = element_text(face = "italic"))
+  facet_wrap(~Species, ncol = 4, scales = "free") +
+  labs(x = "Age (years)", y = "Length (cm)") +
+  theme(strip.text.x = element_text(face = "italic")) +
+  lims(y = c(0, NA), x = c(0, NA)) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5))) +
+    scale_fill_manual(values = palette_location) +
+    scale_color_manual(values = palette_location)
 
 plot_final
 
@@ -360,42 +430,56 @@ ggplotly(plot_final)
 
 # 1. Comparison of the maximum age between our study and literature ----
 
-fishbase_vbgf %>% 
-  filter(!(is.na(RefNo))) %>% 
+vbgf_literature %>% 
+  filter(!(is.na(Age_max))) %>% 
   group_by(Species) %>% 
-  summarise(tmax = max(tmax),
-            Lmax = max(Lmax)) %>% 
-  filter_at(vars(tmax, Lmax), any_vars(!(is.na(.)))) %>% 
-  left_join(., fishbase_vbgf %>% 
-              filter(!(is.na(RefNo)))) %>% 
-  select(-Wmax, -k, -Linf, -t0) %>% 
-  unique() %>% 
+  summarise(Age_max = max(Age_max)) %>% 
+  ungroup() %>% 
+  left_join(., vbgf_literature) %>% 
+  select(Species, Age_max, Reference) %>% 
   right_join(., data_complete %>% 
-                  select(Species, Agecpt, Lcpt) %>% 
+                  mutate(Lcpt = Lcpt/10) %>% 
+                  filter(!(is.na(Agecpt))) %>% 
                   group_by(Species) %>% 
-                  summarise(Agecpt = max(Agecpt),
-                            Lcpt = max(Lcpt))) %>% 
-  # Make the HTML table
-  mutate(Lcpt = Lcpt/10) %>% 
-  select(Species, Lcpt, Agecpt, Lmax, tmax, ShortCitation, Locality) %>% 
-  mutate(Species = cell_spec(Species, color = "black"),
-         Lcpt = cell_spec(Lcpt, color = ifelse(is.na(Lmax), "black", ifelse(Lcpt > Lmax, "#d91e18", "#00b16a"))),
-         Agecpt = cell_spec(Agecpt, color = ifelse(is.na(tmax), "black", ifelse(Agecpt > tmax, "#d91e18", "#00b16a"))),
-         Lmax = cell_spec(Lmax, "html", color = ifelse(is.na(Lmax), "white", "black")),
-         tmax = cell_spec(tmax, "html", color = ifelse(is.na(tmax), "white", "black")),
-         ShortCitation = cell_spec(ShortCitation, "html", color = ifelse(is.na(ShortCitation), "white", "black")),
-         Locality = cell_spec(Locality, "html", color = ifelse(is.na(Locality), "white", "black"))) %>% 
+                  summarise(Agecpt = max(Agecpt)) %>% 
+                  ungroup()) %>% 
+  select(Species, Agecpt, Age_max, Reference) %>% 
+  arrange(Species) %>%
+  mutate(Agecpt = as.numeric(as.character(Agecpt)),
+         Age_max = as.numeric(as.character(Age_max))) %>% 
+  mutate(Species = cell_spec(Species, "html", color = "black"),
+         Agecpt = cell_spec(Agecpt, "html", color = "black"),
+         Age_max = cell_spec(Age_max, "html", color = ifelse(is.na(Age_max), "white", "black")),
+         Reference = cell_spec(Reference, "html", color = ifelse(is.na(Reference), "white", "black"))) %>% 
   kable(., 
         format = "html", escape = FALSE,
-        col.names = c("Species", "Lmax", "Agemax", "Lmax", "Agemax", "Reference", "Location"),
-        caption = "Table 4. Comparison of maximum length (Lmax) and age (Agemax) between our study and the litterature. Red color indicates Lmax and Agemax values for our study greater than Lmax and Agemax reported in litterature, green color indicates lower values.") %>%
+        col.names = c("Species", "Age max.", "Age max.", "Reference"),
+        caption = "Table 4. Comparison of maximum age (Age max.) between this study and litterature. When value of Age max. from literature is missing for one species, it can be either due to unspecified maximum age in the reference or absent value in literature for the considered species.") %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>% 
   column_spec(1, italic = T) %>%
-  add_header_above(c(" " = 1, "Our Study" = 2, "Litterature" = 4))
+  add_header_above(c(" " = 1, "This Study" = 1, "Litterature" = 2))
 
 ```
 
 # 5. Annex
+
+```{r}
+
+# 1. Variables description ----
+
+data.frame(Column = 1:ncol(data_complete),
+           Variable = colnames(data_complete),
+           Description = NA,
+           Unit = NA,
+           Type = str_to_title(as.vector(sapply(data_complete, class)))) %>% 
+  left_join(., data_complete %>% 
+              mutate_if(is.character, ~NA) %>% 
+              summarise_all(., ~paste0(round(min(., na.rm = TRUE), 3), " - ", round(max(., na.rm = TRUE), 3))) %>% 
+              pivot_longer(everything(), names_to = "Variable", values_to = "Range") %>% 
+              mutate(Range = na_if(Range, "Inf - -Inf"))) %>% 
+  write.csv2(., "./../doc/03_resubmission_scientific-data/variables_description.csv", row.names = FALSE)
+
+```
 
 ```{r}
 

@@ -15,7 +15,7 @@ bcalc_stan <- stan_model("stan/stan_bcalc.stan")
 
 # 4. Import data ----
 
-data_complete <- read.csv("data/coral_reef_fishes_data.csv")
+data_complete <- read.csv("data/01_coral_reef_fishes_data.csv")
 
 # 5. Back-calculation for each species ----
 
@@ -89,4 +89,4 @@ data_complete <- data_complete %>%
          "Observer" = "observer") %>% 
   select(Family, Genus, Species, ID, Agei, Ri, Agecpt, Rcpt, Lcpt, L0p, R0p, 
          Li_sp_m, Li_sp_sd, Li_sploc_m, Li_sploc_sd, Weight, Location, Observer) %>% # Re-order variables
-  write.csv(., "data/back-calculated-size-at-age_morat-et-al.csv", row.names = FALSE) # Export
+  write.csv(., "data/02_back-calculated-size-at-age_morat-et-al.csv", row.names = FALSE) # Export
