@@ -226,8 +226,8 @@ read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>%
 
 # 1. List of species with enough individuals for one location ----
 
-species_list <- c("Abudefduf sexfasciatus", "Acanthurus achilles", "Acanthurus triostegus", 
-                  "Chromis iomelas", "Dascyllus aruanus", "Ostorhinchus apogonoides", 
+species_list <- c("Abudefduf sexfasciatus", "Acanthurus triostegus", "Chromis iomelas", 
+                  "Dascyllus aruanus", "Myripristis berndti", "Ostorhinchus apogonoides", 
                   "Pristiapogon taeniopterus", "Stegastes nigricans")
 
 # 1. Growth parameters ----
@@ -251,9 +251,11 @@ read.csv("./../data/03_raw_vbgf_predictions.csv") %>%
 
 ```{r fig.width=10, fig.height=5}
 
-# 1. Transform the data to get only Agecpt and Lcpt (-> vbgf from raw data) ----
+# 1. Transform the raw data ----
 
-data_raw <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
+# 1.1 Points --
+
+data_raw_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   filter(Species %in% species_list) %>% 
   select(Family, Genus, Species, ID, Agecpt, Lcpt, Location, Observer) %>% 
   unique() %>%
@@ -264,47 +266,57 @@ data_raw <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv")
   dplyr::mutate(Lcpt = Lcpt/10) %>%  # Convert to cm
   mutate(Type = "Raw")
 
-# 2. Transform the data (-> vbgf from back-calculated data) ----
+# 1.2 Curves -- 
+
+data_raw_curve <- read.csv("./../data/03_raw_vbgf_fitted.csv") %>% 
+  filter(Species %in% species_list) %>% 
+  mutate(Type = "Raw")
+
+# 2. Transform the back-calculated data ----
 
 # 2.1 Points --
 
-data_back_calc_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>% 
-  filter(Species %in% unique(data_raw$Species),
-         Location %in% unique(data_raw$Location),
+data_backcalc_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>% 
+  filter(Species %in% species_list,
          !(Species == "Abudefduf sexfasciatus" & Location == "Moorea"),
-         !(Species == "Acanthurus achilles" & Location == "Gambiers"),
-         !(Species == "Acanthurus triostegus" & Location == "Marquesas")) %>% 
+         !(Species == "Acanthurus triostegus" & Location == "Marquesas"),
+         !(Species == "Myripristis berndti" & Location == "Gambiers"),
+         !(Species == "Myripristis berndti" & Location == "Marquesas")) %>% 
   dplyr::mutate(Li_sploc_m = Li_sploc_m/10) %>%  # Convert to cm
   mutate(Type = "Back-calculated")
 
 # 2.2 Curves --
 
-data_back_calc_curve <- read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>% 
-  filter(Species %in% unique(data_raw$Species),
-         Location %in% unique(data_raw$Location)) %>% 
+data_backcalc_curve <- read.csv("./../data/03_back-calculated_vbgf_fitted.csv") %>% 
+  filter(Species %in% species_list,
+         !(Species == "Abudefduf sexfasciatus" & Location == "Moorea"),
+         !(Species == "Acanthurus triostegus" & Location == "Marquesas"),
+         !(Species == "Myripristis berndti" & Location == "Gambiers"),
+         !(Species == "Myripristis berndti" & Location == "Marquesas")) %>% 
   mutate(Type = "Back-calculated")
 
 # 2. Make the plot ----
 
-read.csv("./../data/03_raw_vbgf_fitted.csv") %>% 
-  filter(Species %in% species_list) %>% 
-  mutate(Type = "Raw") %>% 
-  ggplot(data = .) +
-    # Raw data
-    geom_ribbon(aes(x = Agei, ymin = Q2.5, ymax = Q97.5, fill = Type), alpha = 0.5) +
-    geom_line(aes(x = Agei, y = Estimate, color = Type)) +
-    geom_point(data = data_raw, aes(x = Agecpt, y = Lcpt, color = Type), size = 1) +
-    # Back-calculated data
-    geom_ribbon(data = data_back_calc_curve, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Type), alpha = 0.5) +
-    geom_line(data = data_back_calc_curve, aes(x = age, y = ypred_m, color = Type)) +
-    geom_point(data = data_back_calc_points, aes(x = Agei, y = Li_sploc_m, color = Type), size = 1) +
-    # Appearance
-    facet_wrap(~Species, scales = "free", ncol = 4) +
-    lims(y = c(0, NA)) +
-    theme(strip.text.x = element_text(face = "italic")) +
-    labs(x = "Age (years)", y = "Length (TL, cm)") +
-    lims(y = c(0, NA), x = c(0, NA)) +
-    guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
+ggplot() +
+  # Raw data
+  geom_ribbon(data = data_raw_curve, aes(x = Agei, ymin = Q2.5, ymax = Q97.5, fill = Type), alpha = 0.5) +
+  geom_line(data = data_raw_curve, aes(x = Agei, y = Estimate, color = Type)) +
+  geom_point(data = data_raw_points, aes(x = Agecpt, y = Lcpt, color = Type), size = 1) +
+  # Back-calculated data
+  geom_ribbon(data = data_backcalc_curve, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Type), alpha = 0.5) +
+  geom_line(data = data_backcalc_curve, aes(x = age, y = ypred_m, color = Type)) +
+  geom_point(data = data_backcalc_points, aes(x = Agei, y = Li_sploc_m, color = Type), size = 1) +
+  # Appearance
+  facet_wrap(~Species, scales = "free", ncol = 4) +
+  lims(y = c(0, NA)) +
+  theme(strip.text.x = element_text(face = "italic")) +
+  labs(x = "Age (years)", y = "Length (TL, cm)") +
+  lims(y = c(0, NA), x = c(0, NA)) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
+
+# 3. Remove useless objects ----
+
+rm(data_raw_points, data_raw_curve, data_backcalc_points, data_backcalc_curve)
 
 ```
 
@@ -346,6 +358,8 @@ vbgf_literature <- vbgf_literature %>%
 
 ## 4.1 Growth parameters
 
+### 4.1.1 Table
+
 ```{r}
 
 # 1. Comparison of VBGF parameters between our study and literature ----
@@ -365,6 +379,33 @@ read.csv("./../data/03_back-calculated_vbgf_predictions.csv") %>%
         caption = "Table 6. Comparison between .") %>% 
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
   column_spec(1, italic = T)
+
+```
+
+### 4.1.2 Plot
+
+```{r fig.height=15, fig.width=30}
+
+UU <- vbgf_literature %>% 
+  select(Species, Location, Linf, K, t0, Reference) %>% 
+  pivot_longer(c("Linf", "K", "t0"), names_to = "Parameter", values_to = "Estimate") %>% 
+  mutate(Estimate = as.numeric(Estimate),
+         Type = "Literature") %>% 
+  bind_rows(., read.csv("./../data/03_back-calculated_vbgf_predictions.csv") %>% 
+                select(-Est.Error, -Q2.5, -Q97.5) %>% 
+                mutate(Parameter = str_replace_all(Parameter, c("linf" = "Linf",
+                                                                "k" = "K")),
+                       Type = "This study",
+                       Reference = "This study")) %>% 
+  mutate(Species = as.factor(Species),
+         Parameter = factor(Parameter, levels = c("Linf", "K", "t0")))
+
+ggplot(data = UU, aes(x = reorder(Species, desc(Species)), y = Estimate, color = Type)) +
+  geom_point() +
+  facet_wrap(~Parameter, scales = "free") +
+  coord_flip() +
+  labs(x = NULL, y = "Value") +
+  theme(axis.text.y = element_text(face = "italic"))
 
 ```
 
