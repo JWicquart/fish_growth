@@ -416,11 +416,14 @@ plot_final
 
 ```
 
-```{r fig.height=15, fig.width=9}
+```{r fig.height=10, fig.width=9}
 
 # 4. Convert to plotly ----
 
-ggplotly(plot_final)
+plot_final <- plot_final +
+  theme(legend.position = "none")
+
+ggplotly(plot_final, tooltip = c("Reference", "Location", "Size_type"))
 
 ```
 
