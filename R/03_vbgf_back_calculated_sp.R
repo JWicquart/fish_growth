@@ -9,7 +9,6 @@ library(tidyverse)
 library(rfishbase)
 library(rstan)
 library(parallel)
-library(purrr)
 
 # 3. Source models ----
 
@@ -23,7 +22,7 @@ bc <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   group_by(ID) %>%
   filter(Agecpt > 2) %>% # filter with maxage > 2
   ungroup() %>%
-  dplyr::group_by(Species, Location) %>%
+  dplyr::group_by(Species) %>%
   dplyr::mutate(n = length(unique(ID))) %>%
   filter(n >= 5) %>% # filter with at least 5 replicates
   ungroup()
@@ -36,17 +35,16 @@ opts <- rfishbase::species(unique(bc$Species), fields = c("Species", "Length")) 
   ungroup() %>% 
   as.data.frame() %>% 
   mutate(lmax = ifelse(Species == "Chlorurus spilurus", 27, lmax)) %>% # Manually add value for missing species
-  right_join(., unique(select(bc, Location, Species))) # Join with unique combinations
+  right_join(., unique(select(bc, Species))) # Join with unique combinations
 
 # 6. Run models ----
 
 growthmodels <- lapply(1:nrow(opts), function(x){
     
-    loc <- opts[x,"Location"]
     sp <- opts[x,"Species"]
     lmax <- opts[x,"lmax"]
     
-    data <- bc %>% dplyr::filter(Location == loc, Species == sp)
+    data <- bc %>% dplyr::filter(Species == sp)
     
     fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
                      age = data$Agei,
@@ -71,13 +69,13 @@ lapply(1:nrow(opts), function(x){
     filter(Parameter != "kmax") %>% 
     rename(Estimate = mean, Est.Error = sd, Q2.5 = "2.5%", Q97.5 = "97.5%") %>% 
     bind_cols(opts[x,]) %>% 
-    select(Species, Location, Parameter, Estimate, Est.Error, Q2.5, Q97.5)
+    select(Species, Parameter, Estimate, Est.Error, Q2.5, Q97.5)
   
   return(pred)
   
 }) %>% 
   plyr::ldply() %>% 
-  write.csv(., "data/03_back-calculated_vbgf_predictions.csv", row.names = FALSE)
+  write.csv(., "data/03_back-calculated_vbgf_predictions_sp.csv", row.names = FALSE)
 
 # 8. Extract fitted values ----
 
@@ -91,4 +89,4 @@ lapply(1:nrow(opts), function(x){
     
 }) %>% 
   plyr::ldply() %>% 
-  write.csv(., "data/03_back-calculated_vbgf_fitted.csv", row.names = FALSE)
+  write.csv(., "data/03_back-calculated_vbgf_fitted_sp.csv", row.names = FALSE)

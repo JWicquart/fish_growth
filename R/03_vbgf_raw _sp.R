@@ -10,7 +10,7 @@ library(rfishbase)
 data_complete <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   select(Family, Genus, Species, ID, Agecpt, Lcpt, Location, Observer) %>% 
   unique() %>%
-  dplyr::group_by(Species, Location) %>%
+  dplyr::group_by(Species) %>%
   dplyr::mutate(n = length(unique(ID))) %>%
   filter(n >= 10) %>% # filter with at least 10 replicates
   ungroup() %>% 
@@ -50,7 +50,7 @@ vbgf_literature <- vbgf_literature %>%
   
 # 4. Extract all unique combinations per species and location ----
 
-opts <- unique(select(data_complete, Species, Location))
+opts <- unique(select(data_complete, Species))
 
 # 5. Make a function to fit model by species ----
 
@@ -91,13 +91,12 @@ growthmodels <-
   lapply(1:nrow(opts), function(x){
     
     sp <- as.character(opts[x,"Species"])
-    loc <- as.character(opts[x, "Location"])
-    
+
     data_prior <- vbgf_literature %>% 
       filter(Species == sp)
     
     data_raw <- data_complete %>% 
-      filter(Species == sp, Location == loc)
+      filter(Species == sp)
     
     vbgf_bayesian(data_raw, data_prior)
     
@@ -114,13 +113,12 @@ lapply(1:nrow(opts), function(x){
     mutate(Parameter = str_replace_all(Parameter, c("b_k_Intercept" = "K",
                                                     "b_linf_Intercept" = "Linf",
                                                     "b_t0_Intercept" = "t0"))) %>% 
-    mutate(Species = as.character(opts[x,"Species"]),
-           Location = as.character(opts[x,"Location"]), .before = 1)
+    mutate(Species = as.character(opts[x,"Species"]), .before = 1)
   
   return(summary)
 }) %>% 
   plyr::ldply() %>% 
-  write.csv(., "data/03_raw_vbgf_predictions.csv", row.names = FALSE)
+  write.csv(., "data/03_raw_vbgf_predictions_sp.csv", row.names = FALSE)
 
 # 8. Extract fitted values ----
 
@@ -129,19 +127,17 @@ lapply(1:nrow(opts), function(x){
   fitted <- op %>% 
     cbind(Agei = seq(from = 0,
                      to = data_complete %>% 
-                       filter(Location == as.character(op$Location), 
-                              Species == as.character(op$Species)) %>% 
+                       filter(Species == as.character(op$Species)) %>% 
                        dplyr::summarise(max(Agecpt)) %>% 
                        as.numeric(), 
                      by = 0.1),
           fitted(growthmodels[[x]], newdata = data.frame(Agecpt = seq(from = 0, 
-                                                                    to = data_complete %>% 
-                                                                      filter(Location == as.character(op$Location), 
-                                                                             Species == as.character(op$Species)) %>% 
-                                                                      dplyr::summarise(max(Agecpt)) %>% 
-                                                                      as.numeric(), 
-                                                                    by = 0.1))))
+                                                                      to = data_complete %>% 
+                                                                        filter(Species == as.character(op$Species)) %>% 
+                                                                        dplyr::summarise(max(Agecpt)) %>% 
+                                                                        as.numeric(), 
+                                                                      by = 0.1))))
   return(fitted)
 }) %>% 
   plyr::ldply() %>% 
-  write.csv(., "data/03_raw_vbgf_fitted.csv", row.names = FALSE)
+  write.csv(., "data/03_raw_vbgf_fitted_sp.csv", row.names = FALSE)
