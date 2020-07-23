@@ -341,9 +341,9 @@ rm(data_raw_points, data_raw_curve, data_backcalc_points, data_backcalc_curve)
 
 ```
 
-## 3.3 Growth curves (sp. loc.)
+## 3.3 Growth curves (sp.)
 
-```{r fig.width=10, fig.height=15}
+```{r fig.width=8, fig.height=14}
 
 # 1. List of species with enough individuals for one location ----
 
@@ -367,13 +367,13 @@ data_raw_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-a
   filter(n >= 10) %>% # filter with at least 10 replicates
   ungroup() %>% 
   dplyr::mutate(Lcpt = Lcpt/10) %>%  # Convert to cm
-  mutate(Type = "Raw")
+  mutate(Type = "Population-level data")
 
 # 1.2 Curves -- 
 
 data_raw_curve <- read.csv("./../data/03_raw_vbgf_fitted_sp.csv") %>% 
   filter(Species %in% species_list) %>% 
-  mutate(Type = "Raw")
+  mutate(Type = "Population-level data")
 
 # 2. Transform the back-calculated data ----
 
@@ -382,31 +382,35 @@ data_raw_curve <- read.csv("./../data/03_raw_vbgf_fitted_sp.csv") %>%
 data_backcalc_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>% 
   filter(Species %in% species_list) %>% 
   dplyr::mutate(Li_sp_m = Li_sp_m/10) %>%  # Convert to cm
-  mutate(Type = "Back-calculated")
+  mutate(Type = "Back-calculated data")
 
 # 2.2 Curves --
 
 data_backcalc_curve <- read.csv("./../data/03_back-calculated_vbgf_fitted_sp.csv") %>% 
   filter(Species %in% species_list) %>% 
-  mutate(Type = "Back-calculated")
+  mutate(Type = "Back-calculated data")
 
 # 2. Make the plot ----
 
 ggplot() +
   # Raw data
   geom_ribbon(data = data_raw_curve, aes(x = Agei, ymin = Q2.5, ymax = Q97.5, fill = Type), alpha = 0.5) +
-  geom_line(data = data_raw_curve, aes(x = Agei, y = Estimate, color = Type)) +
-  geom_point(data = data_raw_points, aes(x = Agecpt, y = Lcpt, color = Type), size = 1) +
+  geom_line(data = data_raw_curve, aes(x = Agei, y = Estimate, color = Type), show.legend = FALSE) +
+  #geom_point(data = data_raw_points, aes(x = Agecpt, y = Lcpt, color = Type), size = 1) +
   # Back-calculated data
   geom_ribbon(data = data_backcalc_curve, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Type), alpha = 0.5) +
-  geom_line(data = data_backcalc_curve, aes(x = age, y = ypred_m, color = Type)) +
-  geom_point(data = data_backcalc_points, aes(x = Agei, y = Li_sp_m, color = Type), size = 1) +
+  geom_line(data = data_backcalc_curve, aes(x = age, y = ypred_m, color = Type), show.legend = FALSE) +
+  #geom_point(data = data_backcalc_points, aes(x = Agei, y = Li_sp_m, color = Type), size = 1) +
   # Appearance
   facet_wrap(~Species, scales = "free", ncol = 3) +
   lims(y = c(0, NA)) +
-  theme(strip.text.x = element_text(face = "italic")) +
+  theme(strip.text.x = element_text(face = "italic"),
+        legend.position = "top",
+        legend.title = element_blank()) +
   labs(x = "Age (years)", y = "Length (TL, cm)") +
   lims(y = c(0, NA), x = c(0, NA)) +
+  scale_color_manual(values = c(col_color_graph, "#d91e18")) +
+  scale_fill_manual(values = c(col_fill_graph, "#e74c3c")) +
   guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
 
 # 3. Remove useless objects ----
@@ -459,18 +463,18 @@ vbgf_literature <- vbgf_literature %>%
 
 # 1. Comparison of VBGF parameters between our study and literature ----
 
-read.csv("./../data/03_back-calculated_vbgf_predictions_sploc.csv") %>% 
+read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv") %>% 
   mutate(Estimate = paste0(round(Estimate, 3), " (", round(Est.Error, 3), ")")) %>% 
-  pivot_wider(c("Species", Location), names_from = Parameter, values_from = Estimate) %>% 
-  select(Species, Location, linf, k, t0) %>% 
+  pivot_wider(c("Species"), names_from = Parameter, values_from = Estimate) %>% 
+  select(Species, linf, k, t0) %>% 
   rename(Linf = linf, K = k) %>% 
   mutate(Reference = "This study") %>% 
   full_join(., vbgf_literature) %>%
-  select(Species, Location, Linf, K, t0, Reference) %>% 
+  select(Species, Linf, K, t0, Reference) %>% 
   arrange(Species) %>% 
   kable(.,
         format = "html", escape = FALSE,
-        col.names = c("Species", "Location", "Linf", "K", "t0", "Reference"), 
+        col.names = c("Species", "Linf", "K", "t0", "Reference"), 
         caption = "Table 6. Comparison between .") %>% 
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
   column_spec(1, italic = T)
@@ -482,11 +486,11 @@ read.csv("./../data/03_back-calculated_vbgf_predictions_sploc.csv") %>%
 ```{r fig.height=15, fig.width=30}
 
 UU <- vbgf_literature %>% 
-  select(Species, Location, Linf, K, t0, Reference) %>% 
+  select(Species, Linf, K, t0, Reference) %>% 
   pivot_longer(c("Linf", "K", "t0"), names_to = "Parameter", values_to = "Estimate") %>% 
   mutate(Estimate = as.numeric(Estimate),
          Type = "Literature") %>% 
-  bind_rows(., read.csv("./../data/03_back-calculated_vbgf_predictions_sploc.csv") %>% 
+  bind_rows(., read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv") %>% 
                 select(-Est.Error, -Q2.5, -Q97.5) %>% 
                 mutate(Parameter = str_replace_all(Parameter, c("linf" = "Linf",
                                                                 "k" = "K")),
@@ -526,7 +530,7 @@ vbgf_literature_pred <- vbgf_literature %>%
   dplyr::mutate(t0 = ifelse(is.na(t0), 0, t0)) %>% 
   filter(!(is.na(K)), !(is.na(Linf)), !(is.na(t0))) %>% 
   mutate_at(c("Linf", "K", "t0"), as.numeric) %>% 
-  filter(Species %in% unique(read.csv("./../data/03_back-calculated_vbgf_fitted_sploc.csv")$Species)) %>% 
+  filter(Species %in% unique(read.csv("./../data/03_back-calculated_vbgf_fitted_sp.csv")$Species)) %>% 
   # Make the predictions
   dplyr::mutate(Line = row_number()) %>% 
   group_by(Line) %>% 
@@ -534,12 +538,14 @@ vbgf_literature_pred <- vbgf_literature %>%
 
 # 2. Make the plot ----
 
-plot_final <- read.csv("./../data/03_back-calculated_vbgf_fitted_sploc.csv") %>% 
+plot_final <- read.csv("./../data/03_back-calculated_vbgf_fitted_sp.csv") %>% 
   filter(Species %in% unique(vbgf_literature_pred$Species)) %>% 
   ggplot(data = .) +
-  geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq, group = Location, fill = Location), alpha = 0.5) +
-  geom_line(aes(x = age, y = ypred_m, color = Location), size = 0.7) +
-  geom_line(data = vbgf_literature_pred, aes(x = Agei, y = Li, group = as.factor(Line), text = Reference), size = 0.7) +
+  geom_line(data = vbgf_literature_pred, aes(x = Agei, y = Li, group = as.factor(Line), 
+                                             text = Reference), color = "#6c7a89", size = 0.7) +
+  geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq), alpha = 0.5, fill = col_fill_graph) +
+  geom_line(aes(x = age, y = ypred_m), size = 0.7, color = col_color_graph) +
+
   facet_wrap(~Species, ncol = 4, scales = "free") +
   labs(x = "Age (years)", y = "Length (cm)") +
   theme(strip.text.x = element_text(face = "italic")) +
@@ -627,16 +633,17 @@ data.frame(Column = 1:ncol(data_complete),
 sections_example <- data_complete %>% 
   filter(ID %in% c("GAM18_B006", "AC_LI_MA_03_17_221", "AC_NI_MA_03_17_118", "AC_PY_MA_03_17_009", "MOO18FE167",
                    "GAM18_B112", "CT_MA_MA_03_17_396", "GAM18_A033", "GAM18_A059", "GAM18_B080", # Acanthuridae
-                   "OS_AP_MA_03_17_284", "PR_TA_MA_03_17_101", # Apogonidae
-                   "OD_NI_MA_03_17_045", "BA_UN_MO_03_16_003", # Balistidae
-                   "GAM18_A100", # Chaetodontidae
+                   "OS_AN_MO_03_16_003", "OS_AP_MA_03_17_284", "PR_TA_MA_03_17_101", # Apogonidae
+                   "OD_NI_MO_03_16_013", "BA_UN_MO_03_16_003", # Balistidae
+                   "CA_ME_MO_03_16_005", # Carangidae
+                   "GAM18_A100", "CH_CI_MO_03_16_012", # Chaetodontidae
                    "GAM18_A156", "SA_MI_MA_03_17_128", # Holocentridae
                    "GAM18_B066", "GAM18_A011", "GAM18_A214", # Labridae
                    "GAM18_B105", "GAM18_B093", # Lethrinidae
-                   "LU_GI_MA_03_17_058", "GAM18_B099", # Lutjanidae
-                   "GAM18_B129", # Mullidae
+                   "LU_GI_MA_03_17_058", "GAM18_B099", "LU_FU_MO_03_16_007", # Lutjanidae
+                   "GAM18_B129", "MU_FL_MO_03_16_001B", # Mullidae
                    "GAM18_A135", "CE_BI_MO_03_16_002", "GAM18_B056", "GAM18_A162", "DA_AR_MO_03_16_011",
-                   "GAM18_A036", "GAM18_A191", "CH_JO_MO_03_16_013", # Pomacentridae
+                   "GAM18_A036", "GAM18_A191", "CH_JO_MO_03_16_013", "ST_AL_MO_03_16_006", # Pomacentridae
                    "GAM18_A120", "SC_PS_TA_03_16_019", # Scaridae
                    "GAM18_B012", # Scombridae
                    "GAM18_A073", "GAM18_A089", "EP_FA_MA_03_17_027", "H33", "GAM18_A154", "H70", "GAM18_B052", # Serranidae
