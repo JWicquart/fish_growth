@@ -24,7 +24,7 @@ bc <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   ungroup() %>%
   dplyr::group_by(Species) %>%
   dplyr::mutate(n = length(unique(ID))) %>%
-  filter(n >= 5) %>% # filter with at least 5 replicates
+  filter(n >= 5) %>% # filter with at least 5 individuals
   ungroup()
 
 # 5. Extract all unique combinations per species and location ----
@@ -52,7 +52,7 @@ growthmodels <- lapply(1:nrow(opts), function(x){
                      lmax = lmax, 
                      linf_m = 0.8 * lmax,
                      control = list(adapt_delta = 0.999, max_treedepth = 15),
-                     cores = 4, iter = 5000, warmup = 2500,
+                     cores = 4, iter = 10000, warmup = 5000,
                      plot = FALSE)
     
     return(fit)

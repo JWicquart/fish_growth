@@ -104,7 +104,7 @@ data_complete %>%
          Tuamotu = cell_spec(Tuamotu, "html", color = ifelse(is.na(Tuamotu), "white", "#446CB3"))) %>% 
   kable(., 
         format = "html", escape = FALSE,
-        caption = "Table 3. Number of individuals of each species by location") %>%
+        caption = "Table 3. Number of individuals of each species by location. Note the number of individuals for which back-calculated data are available are likely to be different than those presented in this table.") %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
   column_spec(1, italic = T)
 
@@ -129,7 +129,7 @@ data_complete %>%
 
 ### 1.2.1 Agei *vs* Ri
 
-```{r fig.width=15, fig.height=30, fig.cap="Figure 1. Relation between otolith radius (Ri) and age (Agei)."}
+```{r fig.width=15, fig.height=30, fig.cap="Figure 1. Relation between otolith radius (Ri) and age (Agei), by species."}
 
 ggplot(data_complete, aes(x = Agei, y = Ri)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
@@ -144,7 +144,7 @@ ggplot(data_complete, aes(x = Agei, y = Ri)) +
 
 ### 1.2.2 Agei *vs* Li (sp.)
 
-```{r fig.width=15, fig.height=30, fig.cap="Figure 2. Relation between length (TL, mm) and age by species."}
+```{r fig.width=15, fig.height=30, fig.cap="Figure 2. Relation between length (TL, mm) and age, by species."}
 
 ggplot(data_complete, aes(x = Agei, y = Li_sp_m)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
@@ -160,7 +160,7 @@ ggplot(data_complete, aes(x = Agei, y = Li_sp_m)) +
 
 ### 1.2.3 Agei *vs* Li (sp. and loc.)
 
-```{r fig.width=15, fig.height=45, fig.cap="Figure 3. Relation between length (TL, mm) and age by species and location."}
+```{r fig.width=15, fig.height=45, fig.cap="Figure 3. Relation between length (TL, mm) and age, by species and location."}
 
 ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
@@ -197,7 +197,7 @@ read.csv("./../data/03_back-calculated_vbgf_predictions_sploc.csv") %>%
 
 ## 2.2 Growth curves (sp. loc.)
 
-```{r fig.width=15, fig.height=30, fig.cap="Figure 4. Relation between length (TL, mm) and age by species and location."}
+```{r fig.width=15, fig.height=30, fig.cap="Figure 4. Growth curves by species and location."}
 
 # 1. Growth curves ----
 
@@ -212,15 +212,13 @@ read.csv("./../data/03_back-calculated_vbgf_fitted_sploc.csv") %>%
     lims(y = c(0, NA)) +
     theme(strip.text.x = element_text(face = "italic")) +
     labs(x = "Age (years)", y = "Length (TL, cm)") +
-    guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5))) +
-    scale_fill_manual(values = palette_location) +
-    scale_color_manual(values = palette_location)
+    guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
 
 ```
 
 ## 2.3 Growth curves (sp.)
 
-```{r fig.width=15, fig.height=30, fig.cap="Figure 4. Relation between length (TL, mm) and age by species and location."}
+```{r fig.width=15, fig.height=30, fig.cap="Figure 5. Growth curves by species."}
 
 # 1. Growth curves ----
 
@@ -270,7 +268,7 @@ read.csv("./../data/03_raw_vbgf_predictions_sploc.csv") %>%
 
 ## 3.2 Growth curves (sp. loc.)
 
-```{r fig.width=10, fig.height=5}
+```{r fig.width=10, fig.height=5, fig.cap="Figure 6. Comparison of growth curves by species and location (one location only by growth curve) between back-calculated data and population-level data."}
 
 # 1. Transform the raw data ----
 
@@ -321,18 +319,21 @@ data_backcalc_curve <- read.csv("./../data/03_back-calculated_vbgf_fitted_sploc.
 ggplot() +
   # Raw data
   geom_ribbon(data = data_raw_curve, aes(x = Agei, ymin = Q2.5, ymax = Q97.5, fill = Type), alpha = 0.5) +
-  geom_line(data = data_raw_curve, aes(x = Agei, y = Estimate, color = Type)) +
-  geom_point(data = data_raw_points, aes(x = Agecpt, y = Lcpt, color = Type), size = 1) +
+  geom_line(data = data_raw_curve, aes(x = Agei, y = Estimate, color = Type), show.legend = FALSE) +
+  #geom_point(data = data_raw_points, aes(x = Agecpt, y = Lcpt, color = Type), size = 1) +
   # Back-calculated data
   geom_ribbon(data = data_backcalc_curve, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Type), alpha = 0.5) +
-  geom_line(data = data_backcalc_curve, aes(x = age, y = ypred_m, color = Type)) +
-  geom_point(data = data_backcalc_points, aes(x = Agei, y = Li_sploc_m, color = Type), size = 1) +
+  geom_line(data = data_backcalc_curve, aes(x = age, y = ypred_m, color = Type), show.legend = FALSE) +
+  #geom_point(data = data_backcalc_points, aes(x = Agei, y = Li_sploc_m, color = Type), size = 1) +
   # Appearance
   facet_wrap(~Species, scales = "free", ncol = 4) +
   lims(y = c(0, NA)) +
-  theme(strip.text.x = element_text(face = "italic")) +
-  labs(x = "Age (years)", y = "Length (TL, cm)") +
+  theme(strip.text.x = element_text(face = "italic"),
+        legend.position = "top",
+        legend.title = element_blank()) +  labs(x = "Age (years)", y = "Length (TL, cm)") +
   lims(y = c(0, NA), x = c(0, NA)) +
+  scale_color_manual(values = c(col_color_graph, "#d91e18")) +
+  scale_fill_manual(values = c(col_fill_graph, "#e74c3c")) +
   guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
 
 # 3. Remove useless objects ----
@@ -343,7 +344,7 @@ rm(data_raw_points, data_raw_curve, data_backcalc_points, data_backcalc_curve)
 
 ## 3.3 Growth curves (sp.)
 
-```{r fig.width=8, fig.height=14}
+```{r fig.width=8, fig.height=14, fig.cap="Figure 7. Comparison of growth curves by species between back-calculated data and population-level data."}
 
 # 1. List of species with enough individuals for one location ----
 
@@ -432,25 +433,18 @@ vbgf_literature <- read_excel("./../data/00_von-bertalanffy-literature.xlsx", sh
 
 # 2. Check validity of species names ----
 
-vbgf_literature %>% 
-  select(Species) %>% 
-  unique() %>% 
-  left_join(., load_taxa()) %>% 
-  filter(is.na(Genus))
-
-# 3. Apply the corrections and add Family and Genus ----
-
 vbgf_literature <- vbgf_literature %>% 
+  rowwise() %>% 
+  dplyr::mutate(Species2 = ifelse(is_empty(validate_names(Species)) == TRUE, 
+                           NA, 
+                           validate_names(Species))) %>% # Correct the names through fishbase
+  ungroup() %>% 
   dplyr::mutate(Species = str_replace_all(Species, c("Acanthurus chirugus" = "Acanthurus chirurgus",
-                                                     "Chlorurus microrbinos" = "Chlorurus microrhinos",
-                                                     "Scarus psitticus" = "Scarus psittacus",
-                                                     "Cetoscarus bicolour" = "Cetoscarus bicolor"))) %>% 
-  left_join(., load_taxa() %>% 
-                  select(Species, Genus, Family)) %>% 
+                                                     "Scarus psitticus" = "Scarus psittacus"))) %>% # Correct unfound names
   filter(Species %in% unique(data_complete$Species)) %>% 
   mutate(Reference = paste0(Reference, " (", Reference_type, ")")) %>%
   mutate_at(c("Linf", "K", "t0"), as.character) %>% 
-  select(-Genus, -Family, -Size_unit, -Sex, -Reference_type) %>% 
+  select(-Size_unit, -Sex, -Reference_type, -Species2) %>% 
   arrange(Species)
 
 ```
@@ -475,7 +469,7 @@ read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv") %>%
   kable(.,
         format = "html", escape = FALSE,
         col.names = c("Species", "Linf", "K", "t0", "Reference"), 
-        caption = "Table 6. Comparison between .") %>% 
+        caption = "Table 6. Comparison between growth parameters estimated by species through Bayesian framework, with data from literature.") %>% 
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
   column_spec(1, italic = T)
 
@@ -483,9 +477,11 @@ read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv") %>%
 
 ### 4.1.2 Plot
 
-```{r fig.height=15, fig.width=30}
+```{r fig.height=15, fig.width=30, fig.cap="Figure 8. Comparison of VBGF growth parameters estimated through Bayesian framework on species back-calculated data, with parameters from literature."}
 
-UU <- vbgf_literature %>% 
+# 1. Comparison of VBGF parameters between our study and literature ----
+
+vbgf_literature %>% 
   select(Species, Linf, K, t0, Reference) %>% 
   pivot_longer(c("Linf", "K", "t0"), names_to = "Parameter", values_to = "Estimate") %>% 
   mutate(Estimate = as.numeric(Estimate),
@@ -497,20 +493,19 @@ UU <- vbgf_literature %>%
                        Type = "This study",
                        Reference = "This study")) %>% 
   mutate(Species = as.factor(Species),
-         Parameter = factor(Parameter, levels = c("Linf", "K", "t0")))
-
-ggplot(data = UU, aes(x = reorder(Species, desc(Species)), y = Estimate, color = Type)) +
-  geom_point() +
-  facet_wrap(~Parameter, scales = "free") +
-  coord_flip() +
-  labs(x = NULL, y = "Value") +
-  theme(axis.text.y = element_text(face = "italic"))
+         Parameter = factor(Parameter, levels = c("Linf", "K", "t0"))) %>% 
+  ggplot(data = ., aes(x = reorder(Species, desc(Species)), y = Estimate, color = Type)) +
+    geom_point() +
+    facet_wrap(~Parameter, scales = "free") +
+    coord_flip() +
+    labs(x = NULL, y = "Value") +
+    theme(axis.text.y = element_text(face = "italic"))
 
 ```
 
 ## 4.2 Growth curves
 
-```{r fig.height=10, fig.width=15}
+```{r fig.height=10, fig.width=15, fig.cap="Figure 9. Comparison of growth curves based on VBGF growth parameters estimated through Bayesian framework on species back-calculated data with growth curves from literature."}
 
 # 1. Get predictions from literature data ----
 
@@ -558,7 +553,7 @@ plot_final
 
 ```
 
-```{r fig.height=10, fig.width=9}
+```{r fig.height=10, fig.width=9, fig.cap="Figure 10. Comparison of growth curves based on VBGF growth parameters estimated through Bayesian framework on species back-calculated data with growth curves from literature (interactive plot)."}
 
 # 4. Convert to plotly ----
 
@@ -599,7 +594,7 @@ vbgf_literature %>%
   kable(., 
         format = "html", escape = FALSE,
         col.names = c("Species", "Age max.", "Age max.", "Reference"),
-        caption = "Table 4. Comparison of maximum age (Age max.) between this study and litterature. When value of Age max. from literature is missing for one species, it can be either due to unspecified maximum age in the reference or absent value in literature for the considered species.") %>%
+        caption = "Table 7. Comparison of maximum age (Age max.) between this study and litterature. When value of Age max. from literature is missing for one species, it can be either due to unspecified maximum age in the reference or absent value in literature for the considered species.") %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>% 
   column_spec(1, italic = T) %>%
   add_header_above(c(" " = 1, "This Study" = 1, "Litterature" = 2))
@@ -608,7 +603,7 @@ vbgf_literature %>%
 
 # 5. Annex
 
-```{r}
+```{r include=FALSE}
 
 # 1. Variables description ----
 
@@ -626,7 +621,7 @@ data.frame(Column = 1:ncol(data_complete),
 
 ```
 
-```{r}
+```{r include=FALSE}
 
 # 1. Extract the characteristics of individual used as otoliths section examples ----
 
