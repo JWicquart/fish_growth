@@ -44,15 +44,17 @@ growthmodels <- lapply(1:nrow(opts), function(x){
     sp <- opts[x,"Species"]
     lmax <- opts[x,"lmax"]
     
+    linf_prior <- max(data$Lcpt)/10
+    
     data <- bc %>% dplyr::filter(Species == sp)
     
     fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
                      age = data$Agei,
                      id = as.character(data$ID),
                      lmax = lmax, 
-                     linf_m = 0.8 * lmax,
-                     control = list(adapt_delta = 0.999, max_treedepth = 15),
-                     cores = 4, iter = 10000, warmup = 5000,
+                     linf_m = linf_prior,
+                     control = list(adapt_delta = 0.99, max_treedepth = 12),
+                     cores = 2, iter = 6000, warmup = 3000,
                      plot = FALSE)
     
     return(fit)

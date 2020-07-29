@@ -4,6 +4,13 @@ library(tidyverse)
 library(readxl)
 library(brms)
 library(rfishbase)
+library(rstan)
+
+# stan model and function
+
+source("R/functions/growthreg.R")
+
+vonbert_stan <- stan_model("stan/vonbert.stan")
 
 # 2. Load data ----
 
@@ -48,13 +55,14 @@ vbgf_literature <- vbgf_literature %>%
   ungroup() %>% 
   rename(k = K)
   
-# 4. Extract all unique combinations per species and location ----
+# 4. Extract all unique combinations per species  ----
 
-opts <- unique(select(data_complete, Species))
+opts <- unique(select(data_complete, Species)) %>%
+  as.data.frame()
 
 # 5. Make a function to fit model by species ----
 
-vbgf_bayesian <- function(data, dataprior){
+vbgf_bayesian <- function(data, dataprior, ...){
   
   species_i <- data %>% 
     select(Species) %>% 
@@ -70,8 +78,8 @@ vbgf_bayesian <- function(data, dataprior){
                        as.numeric(dataprior[which(dataprior$Species == species_i),"Linf"]))
   
   priors <- c(
-    prior_string(paste0("normal(", prior_linf, ", 5)"), lb = 0, nlpar = "linf"),
-    prior_string(paste0("normal(", prior_k, ", 0.5)"), lb = 0,  nlpar = "k"),
+    prior_string(paste0("normal(", prior_linf, 0.1 * prior_linf), lb = 0, nlpar = "linf"),
+    prior_string(paste0("normal(", prior_k, 0.5 * prior_k), lb = 0,  nlpar = "k"),
     prior(normal(0, 0.5), lb = -0.5, ub = 0.5, nlpar = "t0"))
   
   
@@ -79,7 +87,7 @@ vbgf_bayesian <- function(data, dataprior){
              data = data, 
              family = gaussian(),
              prior = priors,
-             control = list(adapt_delta = 0.95), iter = 10000, warmup = 5000)
+             control = list(adapt_delta = 0.95), ...)
   
   fit
   
