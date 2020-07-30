@@ -47,9 +47,9 @@ growthmodels <- lapply(1:nrow(opts), function(x){
     sp <- opts[x,"Species"]
     lmax <- opts[x,"lmax"]
     
-    linf_prior <- max(data$Lcpt)/10
-    
     data <- bc %>% dplyr::filter(Species == sp)
+    
+    linf_prior <- max(data$Lcpt)/10
     
     fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
                      age = data$Agei,
