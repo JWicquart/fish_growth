@@ -25,7 +25,9 @@ bc <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   dplyr::group_by(Species) %>%
   dplyr::mutate(n = length(unique(ID))) %>%
   filter(n >= 5) %>% # filter with at least 5 individuals
-  ungroup()
+  ungroup() %>% 
+  filter(Species %in% c("Acanthurus triostegus", "Acanthurus achilles")) %>% 
+  as.data.frame()
 
 # 5. Extract all unique combinations per species and location ----
 
@@ -35,7 +37,8 @@ opts <- rfishbase::species(unique(bc$Species), fields = c("Species", "Length")) 
   ungroup() %>% 
   as.data.frame() %>% 
   mutate(lmax = ifelse(Species == "Chlorurus spilurus", 27, lmax)) %>% # Manually add value for missing species
-  right_join(., unique(select(bc, Species))) # Join with unique combinations
+  right_join(., unique(select(bc, Species))) %>% # Join with unique combinations
+  as.data.frame()
 
 # 6. Run models ----
 
