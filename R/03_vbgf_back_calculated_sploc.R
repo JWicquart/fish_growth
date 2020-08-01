@@ -12,7 +12,6 @@ library(parallel)
 
 # 3. Source models ----
 
-bcalc_stan <- stan_model("stan/stan_bcalc.stan")
 vonbert_stan <- stan_model("stan/vonbert.stan")
 
 # 4. Load data ----
@@ -25,7 +24,10 @@ bc <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   dplyr::group_by(Species, Location) %>%
   dplyr::mutate(n = length(unique(ID))) %>%
   filter(n >= 5) %>% # filter with at least 5 replicates
-  ungroup()
+  ungroup() %>%
+  filter(!ID == "SA_MI_MA_03_17_128") %>%
+  filter(!ID %in% c("CE_FL_MA_03_17_214", "CE_FL_MA_03_17_216"))
+
 
 # 5. Extract all unique combinations per species and location ----
 
@@ -39,7 +41,10 @@ opts <- rfishbase::species(unique(bc$Species), fields = c("Species", "Length")) 
 
 # 6. Run models ----
 
-growthmodels <- lapply(1:nrow(opts), function(x){
+ncores <- detectCores()
+
+if (ncores < 5){
+  growthmodels <- lapply(1:nrow(opts), function(x){
     
     loc <- opts[x,"Location"]
     sp <- opts[x,"Species"]
@@ -47,18 +52,105 @@ growthmodels <- lapply(1:nrow(opts), function(x){
     
     data <- bc %>% dplyr::filter(Location == loc, Species == sp)
     
+    linf_prior <- 0.8 * max(data$Lcpt)/10
+    
     fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
                      age = data$Agei,
                      id = as.character(data$ID),
                      lmax = lmax, 
-                     linf_m = 0.8 * lmax,
-                     control = list(adapt_delta = 0.999, max_treedepth = 15),
-                     cores = 4, iter = 5000, warmup = 2500,
+                     linf_m = linf_prior,
+                     control = list(adapt_delta = 0.99, max_treedepth = 12),
+                     cores = 4, iter = 2000, warmup = 1000,
                      plot = FALSE)
     
     return(fit)
     
+  })
+} else{
+  
+  growthmodels <- mclapply(1:nrow(opts), function(x){
+    
+    loc <- opts[x,"Location"]
+    sp <- opts[x,"Species"]
+    lmax <- opts[x,"lmax"]
+    
+    data <- bc %>% dplyr::filter(Location == loc, Species == sp)
+    
+    linf_prior <- 0.8 * max(data$Lcpt)/10
+    
+    fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
+                     age = data$Agei,
+                     id = as.character(data$ID),
+                     lmax = lmax, 
+                     linf_m = linf_prior,
+                     control = list(adapt_delta = 0.99, max_treedepth = 12),
+                     cores = 1, iter = 2000, warmup = 1000,
+                     plot = FALSE)
+    
+    return(fit)
+    
+  }, mc.cores = round(0.8 * ncores))
+}
+
+
+rcheck <- lapply(growthmodels, function(x){check_rhat(x[[3]])}) %>% unlist
+
+length(rcheck[rcheck == FALSE])
+# rhat not great for 8 species
+which(rcheck == FALSE)
+# 2  6 14 36 39 43 46 47
+
+###### posterior predictive checks
+
+for (x in 1:nrow(opts)){
+  print(x)
+  sp <- opts[x,"Species"]
+  data <- bc %>% dplyr::filter(Species == sp) 
+  
+  yrep <- extract(growthmodels[[x]][[3]], "y_rep")[[1]][sample(4000, 50),]
+  print(pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay))
+  Sys.sleep(3)
+}
+
+
+###### rerun some 
+opts2 <- opts[which(rcheck == FALSE),]
+
+i_rerun <- which(rcheck == FALSE)
+
+growthmodels_rerun <- lapply(i_rerun, function(x){
+  
+  loc <- opts[x,"Location"]
+  sp <- opts[x,"Species"]
+  lmax <- opts[x,"lmax"]
+  
+  data <- bc %>% dplyr::filter(Location == loc, Species == sp)
+  
+  linf_prior <- 0.8 * max(data$Lcpt)/10
+  
+  fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
+                   age = data$Agei,
+                   id = as.character(data$ID),
+                   lmax = lmax, 
+                   linf_m = linf_prior,
+                   control = list(adapt_delta = 0.99, max_treedepth = 12),
+                   cores = 4, iter = 4000, warmup = 2000,
+                   plot = FALSE)
+  
+  return(fit)
+  
 })
+
+growthmodels[i_rerun] <- growthmodels_rerun
+
+# second check
+rcheck <- lapply(growthmodels, function(x){check_rhat(x[[3]])}) %>% unlist
+length(rcheck[rcheck == FALSE])
+which(rcheck == FALSE)
+# 2 43 46 47
+
+
+
 
 # 7. Extract parameters ----
 
@@ -69,7 +161,7 @@ lapply(1:nrow(opts), function(x){
     mutate(Parameter = row.names(.)) %>% 
     filter(Parameter != "kmax") %>% 
     rename(Estimate = mean, Est.Error = sd, Q2.5 = "2.5%", Q97.5 = "97.5%") %>% 
-    bind_cols(opts[x,]) %>% 
+    mutate(Species = opts[x, "Species"], Location = opts[x, "Location"]) %>%
     select(Species, Location, Parameter, Estimate, Est.Error, Q2.5, Q97.5)
   
   return(pred)
@@ -84,8 +176,8 @@ lapply(1:nrow(opts), function(x){
   
     fitted <- growthmodels[[x]]$fitted %>% 
       as.data.frame() %>% 
-      bind_cols(opts[x,], .)
-    
+      mutate(Species = opts[x, "Species"], Location = opts[x, "Location"])
+      
     return(fitted)
     
 }) %>% 

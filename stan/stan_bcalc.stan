@@ -21,6 +21,7 @@ parameters{
   real<lower = 0> b;
   real<lower = 0> c;
   real<lower = 0> sigma;
+  real<lower = 0> nu;
   vector<lower = 0, upper = 0.02>[N_mis] r0p_mis;
   real<lower = 0, upper = 0.02> r0p_mu;
   real<lower = 0> r0p_sd;
@@ -44,21 +45,33 @@ model{
   r0p_mu ~ normal(0.005, 0.00025);
 
   // priors
-  target += cauchy_lpdf(sigma | 0, 5);
+  target += student_t_lpdf(sigma | 3, 0, 49)
+    - 1 * student_t_lccdf(0 | 3, 0, 49);
+    
   target += cauchy_lpdf(r0p_sd | 0, 5);
 
-  b ~ normal(200, 50);
-  c ~ normal(1, 0.2);
+  b ~ normal(200, 200);
+  c ~ normal(1, 1);
+  
+  nu ~ gamma(2, 0.1);
 
   for (n in 1:Ni){
      mu[n] = l0p - (b * r0p_imp[n]^c) + (b * rcap[n]^c);
-     lcap[n] ~ normal(mu[n], sigma);
+     lcap[n] ~ student_t(nu, mu[n], sigma);
   }
 }
 
 generated quantities{
+  vector[Ni] lcap_mu;
+  vector[Ni] lcap_rep;
   vector[Ni] a;
   vector[N] l;
+  
+   for (n in 1:Ni){
+     lcap_mu[n] = l0p - (b * r0p_imp[n]^c) + (b * rcap[n]^c);
+     lcap_rep[n] = student_t_rng(nu, lcap_mu[n], sigma);
+  }
+  
 
   for (i in 1:Ni){
     a[i] = l0p - b * r0p_imp[i]^c;

@@ -1,6 +1,5 @@
 # 1. Source functions ----
 
-source("R/functions/bcalc_bayes.R")
 source("R/functions/growthreg.R")
 
 # 2. Required packages ----
@@ -9,10 +8,10 @@ library(tidyverse)
 library(rfishbase)
 library(rstan)
 library(parallel)
+library(bayesplot)
 
 # 3. Source models ----
 
-bcalc_stan <- stan_model("stan/stan_bcalc.stan")
 vonbert_stan <- stan_model("stan/vonbert.stan")
 
 # 4. Load data ----
@@ -26,7 +25,7 @@ bc <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   dplyr::mutate(n = length(unique(ID))) %>%
   filter(n >= 5) %>% # filter with at least 5 individuals
   ungroup() %>% 
-  filter(Species %in% c("Acanthurus triostegus", "Acanthurus achilles")) %>% 
+  #filter(Species %in% c("Acanthurus triostegus", "Acanthurus achilles")) %>% 
   as.data.frame()
 
 # 5. Extract all unique combinations per species and location ----
@@ -40,16 +39,20 @@ opts <- rfishbase::species(unique(bc$Species), fields = c("Species", "Length")) 
   right_join(., unique(select(bc, Species))) %>% # Join with unique combinations
   as.data.frame()
 
+
 # 6. Run models ----
 
-growthmodels <- lapply(1:nrow(opts), function(x){
+ncores <- detectCores()
+
+if (ncores < 5){
+  growthmodels <- lapply(1:nrow(opts), function(x){
     
     sp <- opts[x,"Species"]
     lmax <- opts[x,"lmax"]
     
-    data <- bc %>% dplyr::filter(Species == sp)
+    data <- bc %>% dplyr::filter(Species == sp) 
     
-    linf_prior <- max(data$Lcpt)/10
+    linf_prior <- 0.8 * max(data$Lcpt)/10
     
     fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
                      age = data$Agei,
@@ -57,12 +60,180 @@ growthmodels <- lapply(1:nrow(opts), function(x){
                      lmax = lmax, 
                      linf_m = linf_prior,
                      control = list(adapt_delta = 0.99, max_treedepth = 12),
-                     cores = 2, iter = 6000, warmup = 3000,
+                     cores = 4, iter = 2000, warmup = 1000,
                      plot = FALSE)
     
     return(fit)
     
-})
+  })
+} else{
+  
+  growthmodels <- mclapply(1:nrow(opts), function(x){
+    
+    sp <- opts[x,"Species"]
+    lmax <- opts[x,"lmax"]
+    
+    data <- bc %>% dplyr::filter(Species == sp) 
+    
+    linf_prior <- 0.8 * max(data$Lcpt)/10
+    
+    fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
+                     age = data$Agei,
+                     id = as.character(data$ID),
+                     lmax = lmax, 
+                     linf_m = linf_prior,
+                     control = list(adapt_delta = 0.99, max_treedepth = 12),
+                     cores = 1, iter = 2000, warmup = 1000,
+                     plot = FALSE)
+    
+    return(fit)
+    
+  }, mc.cores = round(0.8 * ncores))
+}
+
+#### diagnostics #####
+check_rhat <- function(fit) {
+  fit_summary <- summary(fit, probs = c(0.5))$summary
+  N <- dim(fit_summary)[[1]]
+  
+  no_warning <- TRUE
+  for (n in 1:N) {
+    rhat <- fit_summary[,6][n]
+    if (rhat > 1.1 || is.infinite(rhat) || is.nan(rhat)) {
+      print(sprintf('Rhat for parameter %s is %s!',
+                    rownames(fit_summary)[n], rhat))
+      no_warning <- FALSE
+    }
+  }
+  if (no_warning){
+    print('Rhat looks reasonable for all parameters')
+    return(TRUE)
+  }
+    
+  else{
+    print('  Rhat above 1.1 indicates that the chains very likely have not mixed')
+    return(FALSE)
+  }
+}
+
+rcheck <- lapply(growthmodels, function(x){check_rhat(x[[3]])}) %>% unlist
+
+length(rcheck[rcheck == FALSE])
+# rhat not great for 8 species
+which(rcheck == FALSE)
+# 3 12 17 24 29 31 33 36
+
+###### posterior predictive checks
+
+for (x in 1:nrow(opts)){
+  print(x)
+  sp <- opts[x,"Species"]
+  data <- bc %>% dplyr::filter(Species == sp) 
+  
+  yrep <- extract(growthmodels[[x]][[3]], "y_rep")[[1]][sample(4000, 50),]
+  print(pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay))
+  Sys.sleep(3)
+}
+
+# 3, 29, and 31 problematic
+  
+###### rerun some 
+opts2 <- opts[which(rcheck == FALSE),]
+
+i_rerun <- which(rcheck == FALSE)
+
+growthmodels_rerun <- lapply(i_rerun, function(x){
+    
+    sp <- opts[x,"Species"]
+    lmax <- opts[x,"lmax"]
+    
+    data <- bc %>% dplyr::filter(Species == sp) 
+    
+    linf_prior <- 0.8 * max(data$Lcpt)/10
+    
+    fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
+                     age = data$Agei,
+                     id = as.character(data$ID),
+                     lmax = lmax, 
+                     linf_m = linf_prior,
+                     control = list(adapt_delta = 0.99, max_treedepth = 12),
+                     cores = 4, iter = 4000, warmup = 2000,
+                     plot = FALSE)
+    
+    return(fit)
+    
+  })
+
+growthmodels[i_rerun] <- growthmodels_rerun
+
+# second check
+rcheck <- lapply(growthmodels, function(x){check_rhat(x[[3]])}) %>% unlist
+length(rcheck[rcheck == FALSE])
+which(rcheck == FALSE)
+# 17, 24
+
+opts[17,]
+opts[24,]
+
+##### inspect individial species
+x = 17
+sp <- opts[x,"Species"]
+lmax <- opts[x,"lmax"]
+
+data <- bc %>% dplyr::filter(Species == sp) %>%
+  # problem with outlier
+  filter(!ID == "SA_MI_MA_03_17_128")
+
+linf_prior <- 0.8 * max(data$Lcpt)/10
+
+ggplot(data) +
+  geom_point(aes(x = Agei, y = Li_sp_m, color = ID))
+
+fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
+                 age = data$Agei,
+                 id = as.character(data$ID),
+                 lmax = lmax, 
+                 linf_m = 20,
+                 control = list(adapt_delta = 0.99, max_treedepth = 12),
+                 cores = 4, iter = 2000, warmup = 1000,
+                 plot = FALSE)
+
+yrep <- extract(fit[[3]], "y_rep")[[1]][sample(4000, 50),]
+
+pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay)
+
+# replace
+growthmodels[[x]] <- fit
+
+x = 24
+sp <- opts[x,"Species"]
+lmax <- opts[x,"lmax"]
+
+data <- bc %>% dplyr::filter(Species == sp) %>%
+  filter(!ID %in% c("CE_FL_MA_03_17_214", "CE_FL_MA_03_17_216"))
+
+linf_prior <- 0.8 * max(data$Lcpt)/10
+
+ggplot(data) +
+  geom_point(aes(x = Agei, y = Li_sp_m, color = ID))
+
+fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
+                 age = data$Agei,
+                 id = as.character(data$ID),
+                 lmax = lmax, 
+                 linf_m = linf_prior,
+                 control = list(adapt_delta = 0.99, max_treedepth = 12),
+                 cores = 4, iter = 2000, warmup = 1000,
+                 plot = FALSE)
+
+yrep <- extract(fit[[3]], "y_rep")[[1]][sample(4000, 50),]
+
+pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay)
+
+rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
+
+# replace
+growthmodels[[x]] <- fit
 
 # 7. Extract parameters ----
 
@@ -73,7 +244,7 @@ lapply(1:nrow(opts), function(x){
     mutate(Parameter = row.names(.)) %>% 
     filter(Parameter != "kmax") %>% 
     rename(Estimate = mean, Est.Error = sd, Q2.5 = "2.5%", Q97.5 = "97.5%") %>% 
-    bind_cols(opts[x,]) %>% 
+    mutate(Species = opts[x, "Species"]) %>%
     select(Species, Parameter, Estimate, Est.Error, Q2.5, Q97.5)
   
   return(pred)
@@ -88,8 +259,8 @@ lapply(1:nrow(opts), function(x){
   
     fitted <- growthmodels[[x]]$fitted %>% 
       as.data.frame() %>% 
-      bind_cols(opts[x,], .)
-    
+      mutate(Species = opts[x, "Species"]) 
+      
     return(fitted)
     
 }) %>% 

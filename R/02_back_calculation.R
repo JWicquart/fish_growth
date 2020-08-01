@@ -17,18 +17,34 @@ bcalc_stan <- stan_model("stan/stan_bcalc.stan")
 
 data_complete <- read.csv("data/01_coral_reef_fishes_data.csv")
 
+
 # 5. Back-calculation for each species ----
 
 options <- unique(select(data_complete, species))
 
-bc_results <- 
-  lapply(1:nrow(options), purrr::possibly(function(x){
-    print(x)
-    print(options[x,])
-    data <- dplyr::filter(data_complete, species == options[x, "species"], agecap > 1)
-    result <- bcalc_bayes(data)
-    return(result)
-  }, otherwise = NA))
+# cores of pc
+ncores <- detectCores()
+
+if (ncores < 5){
+  bc_results <- 
+    lapply(1:nrow(options), purrr::possibly(function(x){
+      print(x)
+      print(options[x,])
+      data <- dplyr::filter(data_complete, species == options[x, "species"], agecap > 1) 
+      result <- bcalc_bayes(data)
+      return(result)
+    }, otherwise = NA))
+} else{
+  bc_results <- 
+    parallel::mclapply(1:nrow(options), purrr::possibly(function(x){
+      print(x)
+      print(options[x,])
+      data <- dplyr::filter(data_complete, species == options[x, "species"], agecap > 1) 
+      result <- bcalc_bayes(data)
+      return(result)
+    }, otherwise = NA), mc.cores = round(0.8 * ncores))
+}
+
 
 bc_results1 <- bc_results[!is.na(bc_results)] %>% 
   lapply(function(x){x$lengths}) %>% 
@@ -42,16 +58,29 @@ bc_results1 <- bc_results[!is.na(bc_results)] %>%
 
 options <- unique(select(data_complete, location, species))
 
-bc_results <- 
-  lapply(1:nrow(options), purrr::possibly(function(x){
-    print(x)
-    print(options[x,])
-    data <- dplyr::filter(data_complete, 
-                          location == options[x, "location"], 
-                          species == options[x, "species"], agecap > 1)
-    result <- bcalc_bayes(data)
-    return(result)
-  }, otherwise = NA))
+if (ncores < 5){
+  bc_results <- 
+    lapply(1:nrow(options), purrr::possibly(function(x){
+      print(x)
+      print(options[x,])
+      data <- dplyr::filter(data_complete, 
+                            location == options[x, "location"], 
+                            species == options[x, "species"], agecap > 1)
+      result <- bcalc_bayes(data)
+      return(result)
+    }, otherwise = NA))
+} else{
+  bc_results <- 
+    parallel::mclapply(1:nrow(options), purrr::possibly(function(x){
+      print(x)
+      print(options[x,])
+      data <- dplyr::filter(data_complete, 
+                            location == options[x, "location"], 
+                            species == options[x, "species"], agecap > 1)      
+      result <- bcalc_bayes(data)
+      return(result)
+    }, otherwise = NA), mc.cores = round(0.8 * ncores))
+}
 
 bc_results2 <- bc_results[!is.na(bc_results)] %>% 
   lapply(function(x){x$lengths}) %>% 

@@ -86,7 +86,6 @@ bcalc_bayes <- function(data, ...){
       r0p = data[data$agei == 0  & !is.na(data$radi), "radi"]
     )
     
-    
     fit <- rstan::sampling(bcalc_stan, sdata, chains = 4, ...)
     
     ll <- rstan::extract(fit, "l")[[1]]
@@ -99,6 +98,22 @@ bcalc_bayes <- function(data, ...){
       l_q1 = apply(ll, 2, quantile, 0.025),
       l_q3 = apply(ll, 2, quantile, 0.975)
     )
-    return(list(fit = fit, lengths = lengths))
+    
+    # check for fit and outliers
+    lcap_mu <- rstan::extract(fit, "lcap_mu")[[1]]
+    lcap <- data.frame(
+      id = unique(data$id),
+      radcap = (data[data$agei == 1,]$radcap),
+      r0 = (data[data$agei == 0,]$radi),
+      lencap = (data[data$agei == 1,]$lencap),
+      l_m = apply(lcap_mu, 2, median),
+      l_sd = apply(lcap_mu, 2, sd),
+      l_lq = apply(lcap_mu, 2, quantile, 0.025),
+      l_uq = apply(lcap_mu, 2, quantile, 0.975)
+    ) %>%
+      mutate(outlier = lencap > l_lq & lencap < l_uq)
+    
+    return(list(fit = fit, lengths = lengths, lcap = lcap))
   }
 }
+
