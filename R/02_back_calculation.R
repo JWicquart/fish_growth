@@ -8,6 +8,7 @@ source("R/functions/growthreg.R")
 library(plyr)
 library(tidyverse)
 library(rstan)
+library(parallel)
 
 # 3. Source models ----
 
@@ -16,7 +17,6 @@ bcalc_stan <- stan_model("stan/stan_bcalc.stan")
 # 4. Import data ----
 
 data_complete <- read.csv("data/01_coral_reef_fishes_data.csv")
-
 
 # 5. Back-calculation for each species ----
 
@@ -34,7 +34,7 @@ if (ncores < 5){
       result <- bcalc_bayes(data)
       return(result)
     }, otherwise = NA))
-} else{
+}else{
   bc_results <- 
     parallel::mclapply(1:nrow(options), purrr::possibly(function(x){
       print(x)
@@ -69,7 +69,7 @@ if (ncores < 5){
       result <- bcalc_bayes(data)
       return(result)
     }, otherwise = NA))
-} else{
+}else{
   bc_results <- 
     parallel::mclapply(1:nrow(options), purrr::possibly(function(x){
       print(x)
