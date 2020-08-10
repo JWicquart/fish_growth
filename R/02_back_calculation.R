@@ -31,7 +31,7 @@ if (ncores < 5){
       print(x)
       print(options[x,])
       data <- dplyr::filter(data_complete, species == options[x, "species"], agecap > 1) 
-      result <- bcalc_bayes(data)
+      result <- bcalc_bayes(data, iter = 4000)
       return(result)
     }, otherwise = NA))
 }else{
@@ -40,7 +40,7 @@ if (ncores < 5){
       print(x)
       print(options[x,])
       data <- dplyr::filter(data_complete, species == options[x, "species"], agecap > 1) 
-      result <- bcalc_bayes(data)
+      result <- bcalc_bayes(data, iter = 4000)
       return(result)
     }, otherwise = NA), mc.cores = round(0.8 * ncores))
 }
@@ -66,7 +66,7 @@ if (ncores < 5){
       data <- dplyr::filter(data_complete, 
                             location == options[x, "location"], 
                             species == options[x, "species"], agecap > 1)
-      result <- bcalc_bayes(data)
+      result <- bcalc_bayes(data, iter = 4000)
       return(result)
     }, otherwise = NA))
 }else{
@@ -77,7 +77,7 @@ if (ncores < 5){
       data <- dplyr::filter(data_complete, 
                             location == options[x, "location"], 
                             species == options[x, "species"], agecap > 1)      
-      result <- bcalc_bayes(data)
+      result <- bcalc_bayes(data, iter = 4000)
       return(result)
     }, otherwise = NA), mc.cores = round(0.8 * ncores))
 }
