@@ -25,7 +25,7 @@ options <- unique(select(data_complete, species))
 # cores of pc
 ncores <- detectCores()
 
-if (ncores < 5){
+if (ncores < 5 | Sys.info()[1] == "Windows")){
   bc_results <- 
     lapply(1:nrow(options), purrr::possibly(function(x){
       print(x)
@@ -58,7 +58,7 @@ bc_results1 <- bc_results[!is.na(bc_results)] %>%
 
 options <- unique(select(data_complete, location, species))
 
-if (ncores < 5){
+if (ncores < 5 | Sys.info()[1] == "Windows")){
   bc_results <- 
     lapply(1:nrow(options), purrr::possibly(function(x){
       print(x)
