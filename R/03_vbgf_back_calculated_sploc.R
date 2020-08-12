@@ -96,9 +96,8 @@ if (ncores < 5){
 rcheck <- lapply(growthmodels, function(x){check_rhat(x[[3]])}) %>% unlist
 
 length(rcheck[rcheck == FALSE])
-# rhat not great for 8 species
+
 which(rcheck == FALSE)
-# 2  6 14 36 39 43 46 47
 
 ###### posterior predictive checks
 
@@ -147,9 +146,128 @@ growthmodels[i_rerun] <- growthmodels_rerun
 rcheck <- lapply(growthmodels, function(x){check_rhat(x[[3]])}) %>% unlist
 length(rcheck[rcheck == FALSE])
 which(rcheck == FALSE)
-# 2 43 46 47
+
+### 40
+x = 40
+sp <- opts[x,"Species"]
+lmax <- opts[x,"lmax"]
+loc <- opts[x,"Location"]
+
+rstan::plot(growthmodels[[x]][[3]], plotfun = "trace", pars = "linf_j")
 
 
+data <- bc %>% dplyr::filter(Location == loc, Species == sp)
+
+#remove <- unique(data$ID)[c(2, 4, 6, 7,12)]
+
+# data <- data %>%
+#   filter(! ID %in% remove)
+
+linf_prior <- 0.9 * max(data$Lcpt)/10
+
+ggplot(data) +
+  geom_point(aes(x = Agei, y = Li_sp_m, 
+                 color = ID, shape = Location))
+
+fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
+                 age = data$Agei,
+                 id = as.character(data$ID),
+                 lmax = lmax, 
+                 linf_m = linf_prior,
+                 control = list(adapt_delta = 0.99, max_treedepth = 12),
+                 cores = 4, iter = 4000, warmup = 2000,
+                 plot = FALSE)
+
+yrep <- extract(fit[[3]], "y_rep")[[1]][sample(4000, 50),]
+
+pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay)
+rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
+
+
+# replace
+growthmodels[[x]] <- fit
+
+### 43
+x = 43
+sp <- opts[x,"Species"]
+lmax <- opts[x,"lmax"]
+loc <- opts[x,"Location"]
+
+rstan::plot(growthmodels[[x]][[3]], plotfun = "trace", pars = "linf_j")
+
+
+data <- bc %>% dplyr::filter(Location == loc, Species == sp)
+
+remove <- unique(data$ID)[c(14)]
+
+data <- data %>%
+  filter(! ID %in% remove)
+
+linf_prior <- 0.8 * max(data$Lcpt)/10
+
+ggplot(data) +
+  geom_point(aes(x = Agei, y = Li_sp_m, 
+                 color = ID, shape = Location))
+
+fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
+                 age = data$Agei,
+                 id = as.character(data$ID),
+                 lmax = lmax, 
+                 linf_m = linf_prior,
+                 control = list(adapt_delta = 0.99, max_treedepth = 12),
+                 cores = 4, iter = 4000, warmup = 2000,
+                 plot = FALSE)
+
+yrep <- extract(fit[[3]], "y_rep")[[1]][sample(4000, 50),]
+
+pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay)
+rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
+
+# replace
+growthmodels[[x]] <- fit
+
+### 44
+x = 44
+sp <- opts[x,"Species"]
+lmax <- opts[x,"lmax"]
+loc <- opts[x,"Location"]
+
+rstan::plot(growthmodels[[x]][[3]], plotfun = "trace", pars = "linf_j")
+
+
+data <- bc %>% dplyr::filter(Location == loc, Species == sp)
+
+remove <- unique(data$ID)[c(5)]
+
+data <- data %>%
+  filter(! ID %in% remove)
+
+linf_prior <- 0.8 * max(data$Lcpt)/10
+
+ggplot(data) +
+  geom_point(aes(x = Agei, y = Li_sp_m, 
+                 color = ID, shape = Location))
+
+fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
+                 age = data$Agei,
+                 id = as.character(data$ID),
+                 lmax = lmax, 
+                 linf_m = linf_prior,
+                 control = list(adapt_delta = 0.99, max_treedepth = 12),
+                 cores = 4, iter = 4000, warmup = 2000,
+                 plot = FALSE)
+
+yrep <- extract(fit[[3]], "y_rep")[[1]][sample(4000, 50),]
+
+pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay)
+rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
+
+# replace
+growthmodels[[x]] <- fit
+
+# last check
+rcheck <- lapply(growthmodels, function(x){check_rhat(x[[3]])}) %>% unlist
+length(rcheck[rcheck == FALSE])
 
 
 # 7. Extract parameters ----
