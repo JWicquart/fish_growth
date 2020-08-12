@@ -6,11 +6,6 @@ library(brms)
 library(rfishbase)
 library(rstan)
 
-# stan model and function
-
-source("R/functions/growthreg.R")
-
-vonbert_stan <- stan_model("stan/vonbert.stan")
 
 # 2. Load data ----
 
@@ -23,13 +18,18 @@ data_complete <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv")
   ungroup() %>% 
   dplyr::mutate(Lcpt = Lcpt/10) # Convert to cm
 
+# 4. Extract all unique combinations per species  ----
+
+opts <- unique(select(data_complete, Species)) %>%
+  as.data.frame()
+
 # 3. Use parameters from literature to get the priors ----
 
 # 3.1 Load file and misc modifications --
 
 vbgf_literature <- read_excel("data/00_von-bertalanffy-literature.xlsx", sheet = 1) %>% 
-  dplyr::mutate(Linf = ifelse(Size_unit == "cm", Linf*10, Linf),
-                Size_max = ifelse(Size_unit == "cm", Size_max*10, Size_max)) %>% # Convert all length values to mm
+  dplyr::mutate(Linf = ifelse(Size_unit == "cm", Linf, Linf),
+                Size_max = ifelse(Size_unit == "cm", Size_max, Size_max)) %>% # Convert all length values to mm
   select(-Family, -Genus) # Remove Family and Genus to add those level through fishbase
 
 # 3.2 Check validity of species names --
@@ -53,12 +53,9 @@ vbgf_literature <- vbgf_literature %>%
   dplyr::summarise(Linf = mean(Linf, na.rm = TRUE),
                    K = mean(K, na.rm = TRUE)) %>% 
   ungroup() %>% 
-  rename(k = K)
+  rename(k = K) %>%
+  right_join(opts)
   
-# 4. Extract all unique combinations per species  ----
-
-opts <- unique(select(data_complete, Species)) %>%
-  as.data.frame()
 
 # 5. Make a function to fit model by species ----
 
@@ -78,8 +75,8 @@ vbgf_bayesian <- function(data, dataprior, ...){
                        as.numeric(dataprior[which(dataprior$Species == species_i),"Linf"]))
   
   priors <- c(
-    prior_string(paste0("normal(", prior_linf, 0.1 * prior_linf), lb = 0, nlpar = "linf"),
-    prior_string(paste0("normal(", prior_k, 0.5 * prior_k), lb = 0,  nlpar = "k"),
+    prior_string(paste0("normal(", prior_linf, ",", 0.1 * prior_linf, ")"), lb = 0, nlpar = "linf"),
+    prior_string(paste0("normal(", prior_k, ",", 0.5 * prior_k, ")"), lb = 0,  nlpar = "k"),
     prior(normal(0, 0.5), lb = -0.5, ub = 0.5, nlpar = "t0"))
   
   
@@ -95,20 +92,38 @@ vbgf_bayesian <- function(data, dataprior, ...){
 
 # 6. Run models ----
 
-growthmodels <-
-  lapply(1:nrow(opts), function(x){
-    
-    sp <- as.character(opts[x,"Species"])
+ncores <- detectCores()
 
-    data_prior <- vbgf_literature %>% 
-      filter(Species == sp)
-    
-    data_raw <- data_complete %>% 
-      filter(Species == sp)
-    
-    vbgf_bayesian(data_raw, data_prior)
-    
-})
+if (ncores < 5 | Sys.info()[1] == "Windows") {
+  growthmodels <-
+    lapply(1:nrow(opts), function(x){
+      
+      sp <- as.character(opts[x,"Species"])
+      
+      data_prior <- vbgf_literature %>% 
+        filter(Species == sp)
+      
+      data_raw <- data_complete %>% 
+        filter(Species == sp)
+      
+      vbgf_bayesian(data_raw, data_prior)
+      
+    })
+} else {
+  growthmodels <-
+    parallel::mclapply(1:nrow(opts), function(x){
+      
+      sp <- as.character(opts[x,"Species"])
+      
+      data_prior <- vbgf_literature %>% 
+        filter(Species == sp)
+      
+      data_raw <- data_complete %>% 
+        filter(Species == sp)
+      
+      vbgf_bayesian(data_raw, data_prior)
+    }, mc.cores = 0.2 * ncores)
+}
 
 # 7. Extract parameters ----
 
