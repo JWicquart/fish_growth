@@ -5,7 +5,7 @@ library(readxl)
 library(brms)
 library(rfishbase)
 library(rstan)
-
+library(parallel)
 
 # 2. Load data ----
 
@@ -147,16 +147,16 @@ lapply(1:nrow(opts), function(x){
 
 lapply(1:nrow(opts), function(x){
   op <- opts[x,]
-  fitted <- op %>% 
+  fitted <- data.frame(Species = op) %>% 
     cbind(Agei = seq(from = 0,
                      to = data_complete %>% 
-                       filter(Species == as.character(op$Species)) %>% 
+                       filter(Species == as.character(op)) %>% 
                        dplyr::summarise(max(Agecpt)) %>% 
                        as.numeric(), 
                      by = 0.1),
           fitted(growthmodels[[x]], newdata = data.frame(Agecpt = seq(from = 0, 
                                                                       to = data_complete %>% 
-                                                                        filter(Species == as.character(op$Species)) %>% 
+                                                                        filter(Species == as.character(op)) %>% 
                                                                         dplyr::summarise(max(Agecpt)) %>% 
                                                                         as.numeric(), 
                                                                       by = 0.1))))

@@ -61,11 +61,14 @@ data_complete %>%
   filter(!is.na(Li_sp_m)) %>% 
   summarize_at(vars("ID", "Species", "Family"), n_distinct, na.rm = TRUE) %>% 
   bind_rows(data_complete %>%
+              filter(!is.na(Li_sploc_m)) %>% 
               summarize_at(vars("ID", "Species", "Family"), n_distinct, na.rm = TRUE), .) %>% 
-  mutate(Type = c("All data", "Back-calculated"), .before = 1) %>% 
+  bind_rows(data_complete %>%
+              summarize_at(vars("ID", "Species", "Family"), n_distinct, na.rm = TRUE), .) %>% 
+  mutate(Type = c("All data", "Back-calculated sp. loc.", "Back-calculated sp."), .before = 1) %>% 
   kable(., 
         col.names = c("", "Individual", "Species", "Family"), 
-        caption = "Table 1. Comparison of numbers of individuals, species and family for the overall dataset and for back-calculated data") %>% 
+        caption = "Table 1. Comparison of numbers of individuals, species and family for the overall dataset and for back-calculated data (by species, and by species and location).") %>% 
   kable_styling(bootstrap_options = c("striped", "hover"))
 
 ```
@@ -75,6 +78,7 @@ data_complete %>%
 ```{r}
 
 data_complete %>%
+  filter(!is.na(Li_sp_m)) %>% 
   group_by(Species) %>% 
   summarise(n = length(unique(ID)),
         min_lencap = round(min(Lcpt, na.rm = TRUE), 0),
@@ -82,7 +86,7 @@ data_complete %>%
         max_age = max(Agei, na.rm = TRUE)) %>% 
   kable(., 
         col.names = c("Species", "n", "Min length (TL, mm)", "Max length (TL, mm)", "Age max (years)"),
-        caption = "Table 2. Number of individuals, minimum and maximum total length (mm) and maximum age, by species") %>%
+        caption = "Table 2. Number of individuals, minimum and maximum total length (mm) and maximum age, by species. Only individuals with back-calculated data by species are shown.") %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
   column_spec(1, italic = T)
 
@@ -93,6 +97,7 @@ data_complete %>%
 ```{r}
 
 data_complete %>%
+  filter(!is.na(Li_sp_m)) %>% 
   group_by(Species, Location) %>% 
   summarise(n = length(unique(ID))) %>% 
   pivot_wider(names_from = Location, values_from = n) %>% 
@@ -104,7 +109,7 @@ data_complete %>%
          Tuamotu = cell_spec(Tuamotu, "html", color = ifelse(is.na(Tuamotu), "white", "#446CB3"))) %>% 
   kable(., 
         format = "html", escape = FALSE,
-        caption = "Table 3. Number of individuals of each species by location. Note the number of individuals for which back-calculated data are available are likely to be different than those presented in this table.") %>%
+        caption = "Table 3. Number of individuals of each species by location. Only individuals with back-calculated data (by species) are shown.") %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
   column_spec(1, italic = T)
 
@@ -127,28 +132,15 @@ data_complete %>%
 
 ## 1.2 Plot
 
-### 1.2.1 Agei *vs* Ri
+### 1.2.1 Agei *vs* Li (sp.)
 
-```{r fig.width=15, fig.height=30, fig.cap="Figure 1. Relation between otolith radius (Ri) and age (Agei), by species."}
+```{r fig.width=15, fig.height=25, fig.cap="Figure 1. Relation between length (TL, mm) and age, by species."}
 
-ggplot(data_complete, aes(x = Agei, y = Ri)) +
+data_complete %>% 
+  filter(!is.na(Li_sp_m)) %>% # Remove individuals with non back-calculated data
+  ggplot(., aes(x = Agei, y = Li_sp_m)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
   theme(strip.text.x = element_text(size = 8, face = "italic"),
-        strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
-        plot.title = element_text(colour = col_color_graph),
-        plot.subtitle = element_text(colour = "black")) +
-  facet_wrap(~Species, scales = "free", ncol = 5) +
-  labs(x = "Age (years)", y = "Radius (mm)")
-
-```
-
-### 1.2.2 Agei *vs* Li (sp.)
-
-```{r fig.width=15, fig.height=30, fig.cap="Figure 2. Relation between length (TL, mm) and age, by species."}
-
-ggplot(data_complete, aes(x = Agei, y = Li_sp_m)) +
-  geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
-  theme(strip.text.x = element_text(size = 8),
         strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
         plot.title = element_text(colour = col_color_graph),
         plot.subtitle = element_text(colour = "black"),
@@ -158,11 +150,13 @@ ggplot(data_complete, aes(x = Agei, y = Li_sp_m)) +
 
 ```
 
-### 1.2.3 Agei *vs* Li (sp. and loc.)
+### 1.2.2 Agei *vs* Li (sp. and loc.)
 
-```{r fig.width=15, fig.height=45, fig.cap="Figure 3. Relation between length (TL, mm) and age, by species and location."}
+```{r fig.width=15, fig.height=45, fig.cap="Figure 2. Relation between length (TL, mm) and age, by species and location."}
 
-ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
+data_complete %>% 
+  filter(!is.na(Li_sploc_m)) %>% # Remove individuals with non back-calculated data
+  ggplot(., aes(x = Agei, y = Li_sploc_m)) +
   geom_point(color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21)+
   theme(strip.text.x = element_text(size = 8),
         strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
@@ -176,11 +170,30 @@ ggplot(data_complete, aes(x = Agei, y = Li_sploc_m)) +
 
 # 2. VBGF results
 
-## 2.1 Growth parameters (sp. loc.)
+## 2.1 Growth parameters (sp.)
 
 ```{r}
 
-# 1. Growth parameters ----
+# 1. Growth parameters (on back-calculated data by species) ----
+
+read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv") %>% 
+  mutate(Estimate = paste0(round(Estimate, 3), " (", round(Est.Error, 3), ")")) %>% 
+  pivot_wider("Species", names_from = Parameter, values_from = Estimate) %>% 
+  select(Species, linf, k, t0) %>% 
+  arrange(Species) %>% 
+  kable(., 
+        col.names = c("Species", "Linf", "K", "t0"), 
+        caption = "Table 5. Values of Von Bertalanffy parameters estimated on back-calculated data through Bayesian framework by species. Standard deviation are the values in parentheses. Linf is expressed in TL and cm.") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, italic = T)
+
+```
+
+## 2.2 Growth parameters (sp. loc.)
+
+```{r}
+
+# 1. Growth parameters (on back-calculated data by species and locations) ----
 
 read.csv("./../data/03_back-calculated_vbgf_predictions_sploc.csv") %>% 
   mutate(Estimate = paste0(round(Estimate, 3), " (", round(Est.Error, 3), ")")) %>% 
@@ -189,36 +202,15 @@ read.csv("./../data/03_back-calculated_vbgf_predictions_sploc.csv") %>%
   arrange(Species) %>% 
   kable(., 
         col.names = c("Species", "Location", "Linf", "K", "t0"), 
-        caption = "Table 5. Values of Von Bertalanffy parameters estimated through Bayesian framework by species and location. Standard deviation are the values in parentheses. Linf is expressed in TL and cm.") %>% 
+        caption = "Table 6. Values of Von Bertalanffy parameters estimated on back-calculated data through Bayesian framework by species and location. Standard deviation are the values in parentheses. Linf is expressed in TL and cm.") %>% 
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
   column_spec(1, italic = T)
 
 ```
 
-## 2.2 Growth curves (sp. loc.)
-
-```{r fig.width=15, fig.height=30, fig.cap="Figure 4. Growth curves by species and location."}
-
-# 1. Growth curves ----
-
-read.csv("./../data/03_back-calculated_vbgf_fitted_sploc.csv") %>% 
-  ggplot(data = .) +
-    geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Location), alpha = 0.5) +
-    geom_line(aes(x = age, y = ypred_m, color = Location)) +
-    geom_point(data = data_complete %>%
-                 mutate(Li_sp_m = Li_sp_m/10), 
-               aes(x = Agei, y = Li_sp_m, color = Location), size = 1) +
-    facet_wrap(~Species, scales = "free", ncol = 5) +
-    lims(y = c(0, NA)) +
-    theme(strip.text.x = element_text(face = "italic")) +
-    labs(x = "Age (years)", y = "Length (TL, cm)") +
-    guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
-
-```
-
 ## 2.3 Growth curves (sp.)
 
-```{r fig.width=15, fig.height=30, fig.cap="Figure 5. Growth curves by species."}
+```{r fig.width=15, fig.height=25, fig.cap="Figure 3. Growth curves on back-calculated data by species."}
 
 # 1. Growth curves ----
 
@@ -227,6 +219,7 @@ read.csv("./../data/03_back-calculated_vbgf_fitted_sp.csv") %>%
     geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq), alpha = 0.5, fill = col_fill_graph, alpha = 0.6) +
     geom_line(aes(x = age, y = ypred_m), color = col_color_graph) +
     geom_point(data = data_complete %>%
+                 filter(Species %in% unique(read.csv("./../data/03_back-calculated_vbgf_fitted_sp.csv")$Species)) %>% 
                  mutate(Li_sp_m = Li_sp_m/10), 
                aes(x = Agei, y = Li_sp_m), color = col_color_graph, fill = col_fill_graph, size = 1, shape = 21) +
     facet_wrap(~Species, scales = "free", ncol = 5) +
@@ -237,38 +230,114 @@ read.csv("./../data/03_back-calculated_vbgf_fitted_sp.csv") %>%
 
 ```
 
+## 2.4 Growth curves (sp. loc.)
+
+```{r fig.width=15, fig.height=45, fig.cap="Figure 4. Growth curves on back-calculated data by species and location."}
+
+# 1. Growth curves ----
+
+read.csv("./../data/03_back-calculated_vbgf_fitted_sploc.csv") %>% 
+  ggplot(data = .) +
+    geom_ribbon(aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Location), alpha = 0.5, show.legend = FALSE) +
+    geom_line(aes(x = age, y = ypred_m, color = Location), show.legend = FALSE) +
+    geom_point(data = data_complete %>%
+                 filter(Species %in% unique(read.csv("./../data/03_back-calculated_vbgf_fitted_sploc.csv")$Species)) %>% 
+                 mutate(Li_sploc_m = Li_sploc_m/10), 
+               aes(x = Agei, y = Li_sploc_m, color = Location), size = 1, show.legend = FALSE) +
+    facet_grid(Species~Location, scales = "free") +
+    lims(y = c(0, NA)) +
+    labs(x = "Age (years)", y = "Length (TL, cm)") +
+    theme(strip.text.x = element_text(size = 8),
+          strip.background = element_rect(colour = "black", fill = col_facet, size = 1),
+          plot.title = element_text(colour = col_color_graph),
+          plot.subtitle = element_text(colour = "black"),
+          strip.text.y = element_text(angle = 360, face = "italic"))
+
+```
+
 # 3. Raw *vs* Back-calculation
 
-## 3.1 Growth parameters (sp. loc.)
+## 3.1 Growth curves (sp.)
 
-```{r}
+```{r fig.width=8, fig.height=14, fig.cap="Figure 5. Comparison of growth curves by species between back-calculated data and population-level data."}
 
 # 1. List of species with enough individuals for one location ----
 
-species_list <- c("Abudefduf sexfasciatus", "Acanthurus triostegus", "Chromis iomelas", 
-                  "Dascyllus aruanus", "Myripristis berndti", "Ostorhinchus apogonoides", 
-                  "Pristiapogon taeniopterus", "Stegastes nigricans")
+species_list <- c("Abudefduf sexfasciatus", "Acanthurus achilles", "Acanthurus pyroferus", 
+                  "Acanthurus triostegus", "Balistapus undulatus", "Centropyge flavissima",
+                  "Chaetodon ornatissimus", "Chromis iomelas", "Ctenochaetus marginatus",
+                  "Dascyllus aruanus", "Epinephelus hexagonatus", "Myripristis berndti",
+                  "Odonus niger", "Ostorhinchus angustatus", "Ostorhinchus apogonoides",
+                  "Pristiapogon taeniopterus", "Sargocentron microstoma", "Stegastes nigricans")
 
-# 1. Growth parameters ----
+# 1. Transform the raw data ----
 
-read.csv("./../data/03_raw_vbgf_predictions_sploc.csv") %>% 
+# 1.1 Points --
+
+data_raw_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   filter(Species %in% species_list) %>% 
-  mutate(Value = paste0(round(Estimate, 3), " (", round(Est.Error, 3), ")")) %>% 
-  select(Species, Location, Parameter, Value) %>% 
-  pivot_wider(1:2, names_from = Parameter, values_from = Value) %>% 
-  select(Species, Location, Linf, K, t0) %>% 
-  arrange(Species) %>% 
-  kable(., 
-        col.names = c("Species", "Location", "Linf", "K", "t0"), 
-        caption = "Table 5. Values of Von Bertalanffy parameters estimated through Bayesian framework by species and location. Standard deviation are the values in parentheses. Linf is expressed in TL and cm.") %>% 
-  kable_styling(bootstrap_options = c("striped", "hover")) %>%
-  column_spec(1, italic = T)
+  select(Family, Genus, Species, ID, Agecpt, Lcpt, Location, Observer) %>% 
+  unique() %>%
+  dplyr::group_by(Species, Location) %>%
+  dplyr::mutate(n = length(unique(ID))) %>%
+  filter(n >= 10) %>% # filter with at least 10 replicates
+  ungroup() %>% 
+  dplyr::mutate(Lcpt = Lcpt/10) %>%  # Convert to cm
+  mutate(Type = "Population-level data")
+
+# 1.2 Curves -- 
+
+data_raw_curve <- read.csv("./../data/03_raw_vbgf_fitted_sp.csv") %>% 
+  filter(Species %in% species_list) %>% 
+  mutate(Type = "Population-level data")
+
+# 2. Transform the back-calculated data ----
+
+# 2.1 Points --
+
+data_backcalc_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>% 
+  filter(Species %in% species_list) %>% 
+  dplyr::mutate(Li_sp_m = Li_sp_m/10) %>%  # Convert to cm
+  mutate(Type = "Back-calculated data")
+
+# 2.2 Curves --
+
+data_backcalc_curve <- read.csv("./../data/03_back-calculated_vbgf_fitted_sp.csv") %>% 
+  filter(Species %in% species_list) %>% 
+  mutate(Type = "Back-calculated data")
+
+# 2. Make the plot ----
+
+ggplot() +
+  # Raw data
+  geom_ribbon(data = data_raw_curve, aes(x = Agei, ymin = Q2.5, ymax = Q97.5, fill = Type), alpha = 0.5) +
+  geom_line(data = data_raw_curve, aes(x = Agei, y = Estimate, color = Type), show.legend = FALSE) +
+  geom_point(data = data_raw_points, aes(x = Agecpt, y = Lcpt, color = Type), size = 1) +
+  # Back-calculated data
+  geom_ribbon(data = data_backcalc_curve, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Type), alpha = 0.5) +
+  geom_line(data = data_backcalc_curve, aes(x = age, y = ypred_m, color = Type), show.legend = FALSE) +
+  geom_point(data = data_backcalc_points, aes(x = Agei, y = Li_sp_m, color = Type), size = 1) +
+  # Appearance
+  facet_wrap(~Species, scales = "free", ncol = 3) +
+  lims(y = c(0, NA)) +
+  theme(strip.text.x = element_text(face = "italic"),
+        legend.position = "top",
+        legend.title = element_blank()) +
+  labs(x = "Age (years)", y = "Length (TL, cm)") +
+  lims(y = c(0, NA), x = c(0, NA)) +
+  scale_color_manual(values = c(col_color_graph, "#d91e18")) +
+  scale_fill_manual(values = c(col_fill_graph, "#e74c3c")) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
+
+# 3. Remove useless objects ----
+
+rm(data_raw_points, data_raw_curve, data_backcalc_points, data_backcalc_curve)
 
 ```
 
 ## 3.2 Growth curves (sp. loc.)
 
-```{r fig.width=10, fig.height=5, fig.cap="Figure 6. Comparison of growth curves by species and location (one location only by growth curve) between back-calculated data and population-level data."}
+```{r fig.width=10, fig.height=10, fig.cap="Figure 6. Comparison of growth curves by species and location (one location only by growth curve) between back-calculated data and population-level data."}
 
 # 1. Transform the raw data ----
 
@@ -331,84 +400,6 @@ ggplot() +
   theme(strip.text.x = element_text(face = "italic"),
         legend.position = "top",
         legend.title = element_blank()) +  labs(x = "Age (years)", y = "Length (TL, cm)") +
-  lims(y = c(0, NA), x = c(0, NA)) +
-  scale_color_manual(values = c(col_color_graph, "#d91e18")) +
-  scale_fill_manual(values = c(col_fill_graph, "#e74c3c")) +
-  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
-
-# 3. Remove useless objects ----
-
-rm(data_raw_points, data_raw_curve, data_backcalc_points, data_backcalc_curve)
-
-```
-
-## 3.3 Growth curves (sp.)
-
-```{r fig.width=8, fig.height=14, fig.cap="Figure 7. Comparison of growth curves by species between back-calculated data and population-level data."}
-
-# 1. List of species with enough individuals for one location ----
-
-species_list <- c("Abudefduf sexfasciatus", "Acanthurus achilles", "Acanthurus pyroferus", 
-                  "Acanthurus triostegus", "Balistapus undulatus", "Centropyge flavissima",
-                  "Chaetodon ornatissimus", "Chromis iomelas", "Ctenochaetus marginatus",
-                  "Dascyllus aruanus", "Epinephelus hexagonatus", "Myripristis berndti",
-                  "Odonus niger", "Ostorhinchus angustatus", "Ostorhinchus apogonoides",
-                  "Pristiapogon taeniopterus", "Sargocentron microstoma", "Stegastes nigricans")
-
-# 1. Transform the raw data ----
-
-# 1.1 Points --
-
-data_raw_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
-  filter(Species %in% species_list) %>% 
-  select(Family, Genus, Species, ID, Agecpt, Lcpt, Location, Observer) %>% 
-  unique() %>%
-  dplyr::group_by(Species, Location) %>%
-  dplyr::mutate(n = length(unique(ID))) %>%
-  filter(n >= 10) %>% # filter with at least 10 replicates
-  ungroup() %>% 
-  dplyr::mutate(Lcpt = Lcpt/10) %>%  # Convert to cm
-  mutate(Type = "Population-level data")
-
-# 1.2 Curves -- 
-
-data_raw_curve <- read.csv("./../data/03_raw_vbgf_fitted_sp.csv") %>% 
-  filter(Species %in% species_list) %>% 
-  mutate(Type = "Population-level data")
-
-# 2. Transform the back-calculated data ----
-
-# 2.1 Points --
-
-data_backcalc_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>% 
-  filter(Species %in% species_list) %>% 
-  dplyr::mutate(Li_sp_m = Li_sp_m/10) %>%  # Convert to cm
-  mutate(Type = "Back-calculated data")
-
-# 2.2 Curves --
-
-data_backcalc_curve <- read.csv("./../data/03_back-calculated_vbgf_fitted_sp.csv") %>% 
-  filter(Species %in% species_list) %>% 
-  mutate(Type = "Back-calculated data")
-
-# 2. Make the plot ----
-
-ggplot() +
-  # Raw data
-  geom_ribbon(data = data_raw_curve, aes(x = Agei, ymin = Q2.5, ymax = Q97.5, fill = Type), alpha = 0.5) +
-  geom_line(data = data_raw_curve, aes(x = Agei, y = Estimate, color = Type), show.legend = FALSE) +
-  #geom_point(data = data_raw_points, aes(x = Agecpt, y = Lcpt, color = Type), size = 1) +
-  # Back-calculated data
-  geom_ribbon(data = data_backcalc_curve, aes(x = age, ymin = ypred_lq, ymax = ypred_uq, fill = Type), alpha = 0.5) +
-  geom_line(data = data_backcalc_curve, aes(x = age, y = ypred_m, color = Type), show.legend = FALSE) +
-  #geom_point(data = data_backcalc_points, aes(x = Agei, y = Li_sp_m, color = Type), size = 1) +
-  # Appearance
-  facet_wrap(~Species, scales = "free", ncol = 3) +
-  lims(y = c(0, NA)) +
-  theme(strip.text.x = element_text(face = "italic"),
-        legend.position = "top",
-        legend.title = element_blank()) +
-  labs(x = "Age (years)", y = "Length (TL, cm)") +
   lims(y = c(0, NA), x = c(0, NA)) +
   scale_color_manual(values = c(col_color_graph, "#d91e18")) +
   scale_fill_manual(values = c(col_fill_graph, "#e74c3c")) +
@@ -545,9 +536,7 @@ plot_final <- read.csv("./../data/03_back-calculated_vbgf_fitted_sp.csv") %>%
   labs(x = "Age (years)", y = "Length (cm)") +
   theme(strip.text.x = element_text(face = "italic")) +
   lims(y = c(0, NA), x = c(0, NA)) +
-  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5))) +
-    scale_fill_manual(values = palette_location) +
-    scale_color_manual(values = palette_location)
+  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
 
 plot_final
 
