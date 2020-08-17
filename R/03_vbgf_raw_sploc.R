@@ -4,6 +4,8 @@ library(tidyverse)
 library(readxl)
 library(brms)
 library(rfishbase)
+library(rstan)
+library(parallel)
 
 # 2. Load data ----
 

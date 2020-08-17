@@ -17,7 +17,7 @@ vonbert_stan <- stan_model("stan/vonbert.stan")
 # 4. Load data ----
 
 bc <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
-  drop_na(Li_sploc_m) %>%
+  drop_na(Li_sp_m) %>%
   group_by(ID) %>%
   filter(Agecpt > 2) %>% # filter with maxage > 2
   ungroup() %>%
@@ -25,7 +25,6 @@ bc <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   dplyr::mutate(n = length(unique(ID))) %>%
   filter(n >= 5) %>% # filter with at least 5 individuals
   ungroup() %>% 
-  #filter(Species %in% c("Acanthurus triostegus", "Acanthurus achilles")) %>% 
   as.data.frame()
 
 # 5. Extract all unique combinations per species and location ----
@@ -195,7 +194,7 @@ which(rcheck == FALSE)
 
 
 
-##### inspect individial species ####
+##### inspect individual species ####
 
 ### 2
 x = 2

@@ -337,14 +337,16 @@ rm(data_raw_points, data_raw_curve, data_backcalc_points, data_backcalc_curve)
 
 ## 3.2 Growth curves (sp. loc.)
 
-```{r fig.width=10, fig.height=10, fig.cap="Figure 6. Comparison of growth curves by species and location (one location only by growth curve) between back-calculated data and population-level data."}
+```{r fig.width=10, fig.height=15, fig.cap="Figure 6. Comparison of growth curves by species and location (one location only by growth curve) between back-calculated data and population-level data."}
 
 # 1. Transform the raw data ----
+
+species_list2 <- species_list[!species_list %in% c("Balistapus undulatus", "Centropyge flavissima", "Chaetodon ornatissimus")]
 
 # 1.1 Points --
 
 data_raw_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
-  filter(Species %in% species_list) %>% 
+  filter(Species %in% species_list2) %>% 
   select(Family, Genus, Species, ID, Agecpt, Lcpt, Location, Observer) %>% 
   unique() %>%
   dplyr::group_by(Species, Location) %>%
@@ -357,7 +359,7 @@ data_raw_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-a
 # 1.2 Curves -- 
 
 data_raw_curve <- read.csv("./../data/03_raw_vbgf_fitted_sploc.csv") %>% 
-  filter(Species %in% species_list) %>% 
+  filter(Species %in% species_list2) %>% 
   mutate(Type = "Raw")
 
 # 2. Transform the back-calculated data ----
@@ -365,7 +367,7 @@ data_raw_curve <- read.csv("./../data/03_raw_vbgf_fitted_sploc.csv") %>%
 # 2.1 Points --
 
 data_backcalc_points <- read.csv("./../data/02_back-calculated-size-at-age_morat-et-al.csv") %>% 
-  filter(Species %in% species_list,
+  filter(Species %in% species_list2,
          !(Species == "Abudefduf sexfasciatus" & Location == "Moorea"),
          !(Species == "Acanthurus triostegus" & Location == "Marquesas"),
          !(Species == "Myripristis berndti" & Location == "Gambiers"),
@@ -376,7 +378,7 @@ data_backcalc_points <- read.csv("./../data/02_back-calculated-size-at-age_morat
 # 2.2 Curves --
 
 data_backcalc_curve <- read.csv("./../data/03_back-calculated_vbgf_fitted_sploc.csv") %>% 
-  filter(Species %in% species_list,
+  filter(Species %in% species_list2,
          !(Species == "Abudefduf sexfasciatus" & Location == "Moorea"),
          !(Species == "Acanthurus triostegus" & Location == "Marquesas"),
          !(Species == "Myripristis berndti" & Location == "Gambiers"),
@@ -395,7 +397,7 @@ ggplot() +
   geom_line(data = data_backcalc_curve, aes(x = age, y = ypred_m, color = Type), show.legend = FALSE) +
   #geom_point(data = data_backcalc_points, aes(x = Agei, y = Li_sploc_m, color = Type), size = 1) +
   # Appearance
-  facet_wrap(~Species, scales = "free", ncol = 4) +
+  facet_wrap(~Species, scales = "free", ncol = 3) +
   lims(y = c(0, NA)) +
   theme(strip.text.x = element_text(face = "italic"),
         legend.position = "top",
@@ -405,7 +407,12 @@ ggplot() +
   scale_fill_manual(values = c(col_fill_graph, "#e74c3c")) +
   guides(colour = guide_legend(override.aes = list(alpha = 1, size = 0.5)))
 
-# 3. Remove useless objects ----
+# 3. Save the plot ----
+
+ggsave("./../figs/figure-2_comparison-growth-curves-raw-vas-back-calculated.png", height = 15, width = 10) # PNG
+ggsave("./../figs/figure-2_comparison-growth-curves-raw-vas-back-calculated.eps", height = 15, width = 10) # PDF
+
+# 4. Remove useless objects ----
 
 rm(data_raw_points, data_raw_curve, data_backcalc_points, data_backcalc_curve)
 
@@ -434,9 +441,9 @@ vbgf_literature <- vbgf_literature %>%
                                                      "Scarus psitticus" = "Scarus psittacus"))) %>% # Correct unfound names
   filter(Species %in% unique(data_complete$Species)) %>% 
   mutate(Reference = paste0(Reference, " (", Reference_type, ")")) %>%
-  mutate_at(c("Linf", "K", "t0"), as.character) %>% 
   select(-Size_unit, -Sex, -Reference_type, -Species2) %>% 
-  arrange(Species)
+  arrange(Species) %>% 
+  filter(Species %in% unique(read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv")$Species))
 
 ```
 
@@ -446,23 +453,28 @@ vbgf_literature <- vbgf_literature %>%
 
 ```{r}
 
-# 1. Comparison of VBGF parameters between our study and literature ----
+# 1. Get age max and length max by species ----
+
+table_agemax <- data_complete %>% 
+  drop_na(Li_sp_m) %>% 
+  select(Species, Agecpt, Lcpt) %>% 
+  group_by(Species) %>% 
+  summarise(Age_max = max(Agecpt, na.rm = TRUE),
+            Size_max = round(max(Lcpt, na.rm = TRUE)/10, 3))
+
+# 2. Join mean estimated parameters, with size and length max, and with literature ----
 
 read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv") %>% 
-  mutate(Estimate = paste0(round(Estimate, 3), " (", round(Est.Error, 3), ")")) %>% 
+  mutate(Estimate = round(Estimate, 3)) %>% 
   pivot_wider(c("Species"), names_from = Parameter, values_from = Estimate) %>% 
   select(Species, linf, k, t0) %>% 
   rename(Linf = linf, K = k) %>% 
   mutate(Reference = "This study") %>% 
+  left_join(., table_agemax) %>% 
   full_join(., vbgf_literature) %>%
-  select(Species, Linf, K, t0, Reference) %>% 
+  select(Species, Linf, K, t0, Age_max, Size_max, Reference) %>% 
   arrange(Species) %>% 
-  kable(.,
-        format = "html", escape = FALSE,
-        col.names = c("Species", "Linf", "K", "t0", "Reference"), 
-        caption = "Table 6. Comparison between growth parameters estimated by species through Bayesian framework, with data from literature.") %>% 
-  kable_styling(bootstrap_options = c("striped", "hover")) %>%
-  column_spec(1, italic = T)
+  write.csv2(., "./../figs/online-only-table-2_comparison-vbgf-parameters-literature.csv", row.names = FALSE)
 
 ```
 
@@ -553,43 +565,6 @@ ggplotly(plot_final, tooltip = c("Reference", "Location", "Size_type"))
 
 ```
 
-## 4.3 Maximum age
-
-```{r}
-
-# 1. Comparison of the maximum age between our study and literature ----
-
-vbgf_literature %>% 
-  filter(!(is.na(Age_max))) %>% 
-  group_by(Species) %>% 
-  summarise(Age_max = max(Age_max)) %>% 
-  ungroup() %>% 
-  left_join(., vbgf_literature) %>% 
-  select(Species, Age_max, Reference) %>% 
-  right_join(., data_complete %>% 
-                  mutate(Lcpt = Lcpt/10) %>% 
-                  filter(!(is.na(Agecpt))) %>% 
-                  group_by(Species) %>% 
-                  summarise(Agecpt = max(Agecpt)) %>% 
-                  ungroup()) %>% 
-  select(Species, Agecpt, Age_max, Reference) %>% 
-  arrange(Species) %>%
-  mutate(Agecpt = as.numeric(as.character(Agecpt)),
-         Age_max = as.numeric(as.character(Age_max))) %>% 
-  mutate(Species = cell_spec(Species, "html", color = "black"),
-         Agecpt = cell_spec(Agecpt, "html", color = "black"),
-         Age_max = cell_spec(Age_max, "html", color = ifelse(is.na(Age_max), "white", "black")),
-         Reference = cell_spec(Reference, "html", color = ifelse(is.na(Reference), "white", "black"))) %>% 
-  kable(., 
-        format = "html", escape = FALSE,
-        col.names = c("Species", "Age max.", "Age max.", "Reference"),
-        caption = "Table 7. Comparison of maximum age (Age max.) between this study and litterature. When value of Age max. from literature is missing for one species, it can be either due to unspecified maximum age in the reference or absent value in literature for the considered species.") %>%
-  kable_styling(bootstrap_options = c("striped", "hover")) %>% 
-  column_spec(1, italic = T) %>%
-  add_header_above(c(" " = 1, "This Study" = 1, "Litterature" = 2))
-
-```
-
 # 5. Annex
 
 ```{r include=FALSE}
@@ -606,7 +581,7 @@ data.frame(Column = 1:ncol(data_complete),
               summarise_all(., ~paste0(round(min(., na.rm = TRUE), 3), " - ", round(max(., na.rm = TRUE), 3))) %>% 
               pivot_longer(everything(), names_to = "Variable", values_to = "Range") %>% 
               mutate(Range = na_if(Range, "Inf - -Inf"))) %>% 
-  write.csv2(., "./../doc/03_resubmission_scientific-data/variables_description.csv", row.names = FALSE)
+  write.csv2(., "./../figs/table-2_variables-description.csv", row.names = FALSE)
 
 ```
 
@@ -640,8 +615,73 @@ sections_example <- data_complete %>%
 # 2. Export the txt file needed for the legend of the figure on otoliths sections ----
 
 write.table(paste(sections_example$Legend, collapse = ", "), 
-            "./../doc/03_resubmission_scientific-data/legend_fig_otolith_sections.txt", 
+            "./../figs/text_legend-fig-otolith-sections.txt", 
             col.names = FALSE, row.names = FALSE)
+
+```
+
+```{r}
+
+# 1. Merge the tables on growth parameters by species and by species and location in one table ----
+
+table_final <- read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv") %>% 
+  mutate(Location = "All") %>% 
+  bind_rows(., read.csv("./../data/03_back-calculated_vbgf_predictions_sploc.csv")) %>% 
+  select(-Est.Error) %>% 
+  pivot_wider(names_from = Parameter, names_glue = "{Parameter}_{.value}", values_from = c(Estimate, Q2.5, Q97.5)) %>% 
+  arrange(Species, Location) %>% 
+  mutate_if(is.numeric, ~round(.x, digits = 3)) %>% 
+  mutate(linf_range = paste0(linf_Q2.5, " ; ", linf_Q97.5),
+         k_range = paste0(k_Q2.5, " ; ", k_Q97.5),
+         t0_range = paste0(t0_Q2.5, " ; ", t0_Q97.5)) %>% 
+  select(Species, Location, linf_Estimate, linf_range, k_Estimate, k_range, t0_Estimate, t0_range) %>% 
+  # Remove rows of only one sploc (-> sp sufficient) 
+  group_by(Species) %>% 
+  mutate(n = n()) %>% 
+  filter(n > 2 | Location == "All") %>% 
+  select(-n)
+
+# 2. Create the table of number of individuals used to estimates parameters ----
+
+# 2.1 Table for sp --
+
+table_n_sp <- data_complete %>% 
+  drop_na(Li_sp_m) %>%
+  group_by(ID) %>%
+  filter(Agecpt > 2) %>% # filter with maxage > 2
+  ungroup() %>%
+  dplyr::group_by(Species) %>%
+  dplyr::summarise(n = length(unique(ID))) %>%
+  filter(n >= 5) %>% # filter with at least 5 individuals
+  ungroup() %>% 
+  mutate(Location = "All")
+
+# 2.1 Table for sploc --
+
+table_n_sploc <- data_complete %>% 
+  drop_na(Li_sploc_m) %>%
+  group_by(ID) %>%
+  filter(Agecpt > 2) %>% # filter with maxage > 2
+  filter(!(ID %in% c("SA_MI_MA_03_17_128", "CE_FL_MA_03_17_214", "CE_FL_MA_03_17_216"))) %>% # Filter ID leading to non-convergence
+  ungroup() %>%
+  dplyr::group_by(Species, Location) %>%
+  dplyr::summarise(n = length(unique(ID))) %>%
+  filter(n >= 5) %>% # filter with at least 5 individuals
+  ungroup()
+
+# 2.3 Merge the n tables --
+
+table_n <- full_join(table_n_sp, table_n_sploc) %>% 
+  arrange(Species, Location)
+
+# 3. Merge the n table with the 
+
+table_final %>% 
+  left_join(., table_n) %>% 
+  select(Species, Location, n, linf_Estimate, linf_range, k_Estimate, k_range, t0_Estimate, t0_range) %>% 
+  write.csv2(., 
+            "./../figs/online-only-table-2_von-bertalanffy-parameters-estimates.csv", 
+            row.names = FALSE)
 
 ```
 

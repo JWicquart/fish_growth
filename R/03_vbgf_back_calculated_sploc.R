@@ -28,7 +28,6 @@ bc <- read.csv("data/02_back-calculated-size-at-age_morat-et-al.csv") %>%
   filter(!ID == "SA_MI_MA_03_17_128") %>%
   filter(!ID %in% c("CE_FL_MA_03_17_214", "CE_FL_MA_03_17_216"))
 
-
 # 5. Extract all unique combinations per species and location ----
 
 opts <- rfishbase::species(unique(bc$Species), fields = c("Species", "Length")) %>% # Get maximum lengths (Lmax) from fishbase
