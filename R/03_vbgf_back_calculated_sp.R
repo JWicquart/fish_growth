@@ -196,18 +196,18 @@ which(rcheck == FALSE)
 
 ##### inspect individual species ####
 
-### 2
-x = 2
+### 8
+x = 8
 sp <- opts[x,"Species"]
 lmax <- opts[x,"lmax"]
 
 data <- bc %>% dplyr::filter(Species == sp)
 
 rstan::plot(growthmodels[[x]][[3]], plotfun = "trace", pars = "linf_j")
-# second ind. is problematic
-unique(data$ID)[2]
+# remove problem ind
+remove <- unique(data$ID)[c(5, 13, 14)]
 
-data <- data %>% dplyr::filter(!ID == "AC_LI_MA_03_17_165")
+data <- data %>% dplyr::filter(!ID %in% remove)
 
 linf_prior <- 0.8 * max(data$Lcpt)/10
 
@@ -234,14 +234,20 @@ rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
 growthmodels[[x]] <- fit
 
 
-### 6
-x = 6
+### 25
+x = 25
 sp <- opts[x,"Species"]
 lmax <- opts[x,"lmax"]
 
-data <- bc %>% dplyr::filter(Species == sp) %>%
+data <- bc %>% dplyr::filter(Species == sp) 
+
+rstan::plot(growthmodels[[x]][[3]], plotfun = "trace", pars = "linf_j")
+
+remove <- unique(data$ID)[c(1, 3)]
+
+data <- data %>%
   # problem with outlier
-  filter(!ID == "Ct_MA_MA_03_17_155")
+  filter(!ID %in% remove)
 
 linf_prior <- 0.8 * max(data$Lcpt)/10
 
@@ -266,18 +272,15 @@ rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
 # replace
 growthmodels[[x]] <- fit
 
-### 17
-x = 17
+### 33
+x = 33
 sp <- opts[x,"Species"]
 lmax <- opts[x,"lmax"]
 
 data <- bc %>% dplyr::filter(Species == sp)
 
 rstan::plot(growthmodels[[x]][[3]], plotfun = "trace", pars = "linf_j")
-# 1st ind. is problematic
-unique(data$ID)[1]
 
-data <- data %>% dplyr::filter(!ID == "SA_MI_MA_03_17_128")
 
 linf_prior <- 0.8 * max(data$Lcpt)/10
 
@@ -304,94 +307,18 @@ rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
 growthmodels[[x]] <- fit
 
 
-### 24
-x = 24
+### 38
+x = 38
 sp <- opts[x,"Species"]
 lmax <- opts[x,"lmax"]
-
-data <- bc %>% dplyr::filter(Species == sp) %>%
-  filter(!ID %in% c("CE_FL_MA_03_17_214", "CE_FL_MA_03_17_216"))
-
-linf_prior <- 0.8 * max(data$Lcpt)/10
-
-ggplot(data) +
-  geom_point(aes(x = Agei, y = Li_sp_m, 
-                 color = ID, shape = Location))
-
-fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
-                 age = data$Agei,
-                 id = as.character(data$ID),
-                 lmax = lmax, 
-                 linf_m = linf_prior,
-                 control = list(adapt_delta = 0.99, max_treedepth = 12),
-                 cores = 4, iter = 2000, warmup = 1000,
-                 plot = FALSE)
-
-yrep <- extract(fit[[3]], "y_rep")[[1]][sample(4000, 50),]
-
-pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay)
-
-rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
-
-# replace
-growthmodels[[x]] <- fit
-
-### 33
-x = 33
-sp <- opts[x,"Species"]
-lmax <- opts[x,"lmax"]
-
-rstan::plot(growthmodels[[x]][[3]], plotfun = "trace", pars = "linf_j")
-# 5th individual problematic
 
 data <- bc %>% dplyr::filter(Species == sp) 
-
-unique(data$ID)[5]
-
-data <- data %>%
-  filter(! ID == "GAM18_A089")
-
 linf_prior <- 0.8 * max(data$Lcpt)/10
 
-ggplot(data) +
-  geom_point(aes(x = Agei, y = Li_sp_m, 
-                 color = ID, shape = Location))
-
-fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
-                 age = data$Agei,
-                 id = as.character(data$ID),
-                 lmax = lmax, 
-                 linf_m = linf_prior,
-                 control = list(adapt_delta = 0.99, max_treedepth = 12),
-                 cores = 4, iter = 2000, warmup = 1000,
-                 plot = FALSE)
-
-yrep <- extract(fit[[3]], "y_rep")[[1]][sample(4000, 50),]
-
-pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay)
-rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
-
-
-# replace
-growthmodels[[x]] <- fit
-
-
-### 37
-x = 37
-sp <- opts[x,"Species"]
-lmax <- opts[x,"lmax"]
-
-rstan::plot(growthmodels[[x]][[3]], plotfun = "trace", pars = "linf_j")
-# 7 and 12
-
-data <- bc %>% dplyr::filter(Species == sp) 
-
-remove <- unique(data$ID)[c(2, 6, 7,12)]
+remove <- unique(data$ID)[c(2, 6, 7)]
 
 data <- data %>%
-  filter(! ID %in% remove)
-
-linf_prior <- 0.9 * max(data$Lcpt)/10
+  filter(!ID %in% remove)
 
 ggplot(data) +
   geom_point(aes(x = Agei, y = Li_sp_m, 
@@ -409,8 +336,8 @@ fit <- growthreg(length = data$Li_sp_m/10,  # Function requires cm
 yrep <- extract(fit[[3]], "y_rep")[[1]][sample(4000, 50),]
 
 pp_check(data$Li_sp_m/10, yrep, fun = ppc_dens_overlay)
-rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
 
+rstan::plot(fit[[3]], plotfun = "trace", pars = "linf_j")
 
 # replace
 growthmodels[[x]] <- fit
