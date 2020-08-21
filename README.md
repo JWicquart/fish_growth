@@ -14,7 +14,7 @@ Morat, F., Wicquart, J., Schiettekatte, N. M. D., de Synéty, G., Bienvenu, J., 
 
 
 
-On the project main page on GitHub, click on the green button `Clone` and then click on `Download ZIP`
+On the project main page on GitHub, click on the green button `Code` and then click on `Download ZIP`
 
 
 
@@ -24,17 +24,20 @@ On the project main page on GitHub, click on the green button `Clone` and then c
 
 ### 2.1 Project organization
 
-This project is divided in three folder:
+This project is divided in 4 folders:
 
-* `R` folder contains the script 02_back_calculation.Rmd and the `functions` folder.  The _.Rmd_ format was selected because it allows to keep a track of intermediate results through _.html_ files. The `functions` folder contains the function _bcalc_bayes.R_ used for bayesian back-calculation.
-* `data` folder contains the data file used to produce the final data file associated with the article (**_back-calculated-size-at-age_morat-et-al_**)
-* `stan` folder contains the stan script used in the back-calculation procedure
+* `data` folder contains 11 datasets (see part _2.2 Datasets description_).
+* `R` folder contains 3 _R_ codes and a `functions` folder (see part _2.3 Code description_).
+* `stan` folder contains 2 _stan_ codes used by the _R_ codes for Bayesian analyses. 
+* `output` folder contains an HTML file including basic exploratory analyses. This file must be open in a browser and to zoom on the figure within the file, right click on the figure and open it in a new window.
 
 
+### 2.2 Datasets description
 
-### 2.2 Dataset description
+The dataset **00_von-bertalanffy-literature.xlsx** corresponds to values of Von Bertalanffy growth parameters extracted from scientific literature. The column of the spreadsheet _Data_ are described in the spreadsheet _Metadata_.
 
-The raw dataset **_coral_reef_fishes_data_** contains the following variables:
+
+The dataset **01_coral_reef_fishes_data.csv** (13 var. and 6,320 obs.) corresponds to the raw data used to generate the back-calculated size-at-age data (**02_back-calculated-size-at-age_morat-et-al.csv**), and contains the following variables:
 
 - `family` Family
 - `genus` Genus
@@ -42,17 +45,16 @@ The raw dataset **_coral_reef_fishes_data_** contains the following variables:
 - `id` Unique code identifying each individual
 - `agei` Age *i* (*years*)
 - `radi` Otolith radius at age *i* (*mm*)
-- `agecap` Age of the fish at capture (*years*)
-- `radcap` Radius of the otolith at capture (*mm*)
-- `lencap` Length of the fish at capture (*total length, mm*)
-- `l0p` Length of the fish at hatching (*mm*)
-- `weight` Wet weight of the fish at capture (*g*)
+- `agecap` Age at capture (*years*)
+- `radcap` Otolith radius at capture (*mm*)
+- `lencap` Total length at capture (*mm*)
+- `l0p` Total length at hatching (*mm*)
+- `weight` Wet body mass at capture (*g*)
 - `location` Island of the sampling
 - `observer` Name of the person who realized the otolith reading
 
 
-
-The dataset associated to the article (**_back-calculated-size-at-age_morat-et-al_**) contains the following variables:
+The dataset **02_back-calculated-size-at-age_morat-et-al.csv** (18 var. and 6,320 obs.) corresponds to the back-calculated size-at-age data, and contains the following variables:
 
 - `Family` Family
 - `Genus` Genus
@@ -60,33 +62,121 @@ The dataset associated to the article (**_back-calculated-size-at-age_morat-et-a
 - `ID` Unique code identifying each individual
 - `Agei` Age *i* (*years*)
 - `Ri` Otolith radius at age *i* (*mm*)
-- `Agecpt` Age of the fish at capture (*years*)
-- `Rcpt` Radius of the otolith at capture (*mm*)
-- `Lcpt` Length of the fish at capture (*total length, mm*)
-- `L0p` Length of the fish at hatching (*mm*)
-- `R0p` Radius of the fish at hatching (*mm*)
-- `Li_sp_m` Total length (mean) of the fish at age *i* calculated by species (*mm*)
-- `Li_sp_sd` Standard deviation around the value of `Li_sp_m` (_mm_)
-- `Li_sploc_m` Total length (mean) of the fish at age *i* calculated by species and location (*mm*)
-- `Li_sploc_sd` Standard deviation around the value of `Li_sploc_m` (_mm_)
-- `Weight` Wet weight of the fish at capture (*g*)
+- `Agecpt` Age at capture (*years*)
+- `Rcpt` Otolith radius at capture (*mm*)
+- `Lcpt` Total length at capture (*mm*)
+- `L0p` Total length at hatching (*mm*)
+- `R0p` Otolith radius at hatching (*mm*)
+- `Li_sp_m` Total length (mean, *mm*) at age *i* calculated by species
+- `Li_sp_sd` Standard deviation around the value of `Li_sp_m`
+- `Li_sploc_m` Total length (mean, *mm*) at age *i* calculated by species and location
+- `Li_sploc_sd` Standard deviation around the value of `Li_sploc_m`
+- `Weight` Wet body mass at capture (*g*)
 - `Location` Island of the sampling
 - `Observer` Name of the person who realized the otolith reading
 
 
+The dataset **03_back-calculated_vbgf_fitted_sp.csv** (8 var. and 5,474 obs.) corresponds to fitted values of Von Bertalanffy growth curve based on back-calculated data by species, and contains the following variables:
 
-### 2.3 How to reproduce the final dataset?
+- `age` Age *i* (*years*)
+- `ypred_m` Mean estimated value of total length at age *i*
+- `ypred_lq` Lower 95% confidence interval boundary of the `ypred_m`
+- `ypred_uq` Upper 95% confidence interval boundary of the `ypred_m`
+- `yrep_m` 
+- `yrep_lq` 
+- `yrep_uq` 
+- `Species` Species
 
-The **_coral_reef_fishes_data_** file is used by the script _02_back_calculation.Rmd_ to estimate the back-calculated size-at-age and export the final file **_back-calculated-size-at-age_morat-et-al_**. To reproduce the final file, open the script _02_back_calculation.Rmd_ and click on `knit`. Make sure that all required packages were previously downloaded.
+
+The dataset **03_back-calculated_vbgf_fitted_sploc.csv** (9 var. and 5,016 obs.) corresponds to fitted values of Von Bertalanffy growth curve based on back-calculated data by species and location, and contains the following variables:
+
+- `age` Age *i* (*years*)
+- `ypred_m` Mean estimated value of total length at age *i*
+- `ypred_lq` Lower 95% confidence interval boundary of the `ypred_m`
+- `ypred_uq` Upper 95% confidence interval boundary of the `ypred_m`
+- `yrep_m` 
+- `yrep_lq` 
+- `yrep_uq` 
+- `Species` Species
+- `Location` Island of the sampling
 
 
+The dataset **03_back-calculated_vbgf_predictions_sp.csv** (6 var. and 120 obs.) corresponds to estimated values of Von Bertalanffy growth parameters based on back-calculated data by species, and contains the following variables:
 
-### 2.4 How to use the final dataset?
+- `Species` Family
+- `Agei` Age *i* (*years*)
+- `Estimate`  Mean estimated value of total length at age *i*
+- `Est.Error` Standard deviation around the `Estimate`
+- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
+- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
 
-The dataset associated to the article (**_back-calculated-size-at-age_morat-et-al_**) can be used for two purpose:
 
-1. **Estimation of growth parameters and growth curves**. Growth parameters can be obtained using the variables `Agei` and `Li_sp_m` (by species across all locations) or `Li_sploc_m` (by species and location). The growth parameters can then be used to predict community level biomass production.
-2. **Estimation of length-weight relationship**. The relationship _W = aL^b_ (with W = weight and L = length) can be used to estimate the weight of a fish from its length. To do so the parameters _a_ and _b_ are needed and can be obtained by fitting an allometric model using measured weight and length of several individuals of a given species. Our dataset provide such data and make it possible to estimate _a_ and _b_ parameters. The variables `Weight` and `Lcpt` can be used for that purpose.
+The dataset **03_back-calculated_vbgf_predictions_sploc.csv** (7 var. and 159 obs.) corresponds to estimated values of Von Bertalanffy growth parameters based on back-calculated data by species and location, and contains the following variables:
+
+- `Species` Family
+- `Location` Island of the sampling
+- `Agei` Age *i* (*years*)
+- `Estimate`  Mean estimated value of total length at age *i*
+- `Est.Error` Standard deviation around the `Estimate`
+- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
+- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+
+
+The dataset **03_raw_vbgf_fitted_sp.csv** (6 var. and 5,196 obs.) corresponds to fitted values of Von Bertalanffy growth curve based on raw data (age estimated and length at capture) by species, and contains the following variables:
+
+- `Species` Species
+- `Agei` Age *i* (*years*)
+- `Estimate` Mean estimated value of total length at age *i*
+- `Est.Error` Standard deviation around the `Estimate`
+- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
+- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+
+
+The dataset **03_raw_vbgf_fitted_sploc.csv** (7 var. and 4,828 obs.) corresponds to fitted values of Von Bertalanffy growth curve based on raw data (age estimated and length at capture) by species, and contains the following variables:
+
+- `Species` Species
+- `Location` Island of the sampling
+- `Agei` Age *i* (*years*)
+- `Estimate` Mean estimated value of total length at age *i*
+- `Est.Error` Standard deviation around the `Estimate`
+- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
+- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+
+
+The dataset **03_back-calculated_vbgf_predictions_sp.csv** (6 var. and 108 obs.) corresponds to estimated values of Von Bertalanffy growth parameters based on raw data (age estimated and length at capture) by species, and contains the following variables:
+
+- `Species` Species
+- `Agei` Age *i* (*years*)
+- `Estimate` Mean estimated value of total length at age *i*
+- `Est.Error` Standard deviation around the `Estimate`
+- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
+- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+
+
+The dataset **03_back-calculated_vbgf_predictions_sploc.csv** (7 var. and 114 obs.) corresponds to estimated values of Von Bertalanffy growth parameters based on raw data (age estimated and length at capture) by species and location, and contains the following variables:
+
+- `Species` Species
+- `Location` Island of the sampling
+- `Agei` Age *i* (*years*)
+- `Estimate` Mean estimated value of total length at age *i*
+- `Est.Error` Standard deviation around the `Estimate`
+- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
+- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+
+
+### 2.3 Code description
+
+
+* The _02_back_calculation.R_ code is used to obtain the back-calculated size-at-age.
+
+* The codes _03_vbgf_back_calculated_sp.R_, _03_vbgf_back_calculated_sploc.R_, _03_vbgf_raw_sp.R_ and _03_vbgf_raw_sploc.R_ are respectively used to obtain Von Bertalanffy growth parameters and fitted values with back-calculated data by species, by species and location, with raw data by species, and by species and location. 
+
+* The `functions` folder contains the function _graphical_par.R_ and _theme_graph.R_ which are functions dedicated to graphical representations. The function _bcalc_bayes.R_ is used to fit Von Bertalanffy growth model, the function _growthreg.R_ is used to [...] and the function _pred_vbgf.R_ is used to fit Von Bertalanffy growth curves from values of the three parameters.
+
+
+### 2.4 How to reproduce the final datasets?
+
+To reproduce the 8 final datasets (*i.e.* those starting by _03_), open and run successively the R codes _02_back_calculation.R_, and all the _R_ codes starting by _03_. Make sure that all required packages were previously installed. Due to the elevated number of iterations from the Bayesian model, the codes necessitate an important amount of time to run. Please note that a full reproduction of the results is not possible, as Bayesian estimations are different at each run.
 
 
 

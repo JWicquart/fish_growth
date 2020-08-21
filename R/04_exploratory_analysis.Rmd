@@ -337,7 +337,7 @@ rm(data_raw_points, data_raw_curve, data_backcalc_points, data_backcalc_curve)
 
 ## 3.2 Growth curves (sp. loc.)
 
-```{r fig.width=10, fig.height=15, fig.cap="Figure 6. Comparison of growth curves by species and location (one location only by growth curve) between back-calculated data and population-level data."}
+```{r fig.width=9, fig.height=12, fig.cap="Figure 6. Comparison of growth curves by species and location (one location only by growth curve) between back-calculated data and population-level data."}
 
 # 1. Transform the raw data ----
 
@@ -410,7 +410,7 @@ ggplot() +
 # 3. Save the plot ----
 
 ggsave("./../figs/figure-2_comparison-growth-curves-raw-vas-back-calculated.png", height = 15, width = 10) # PNG
-ggsave("./../figs/figure-2_comparison-growth-curves-raw-vas-back-calculated.eps", height = 15, width = 10) # PDF
+ggsave("./../figs/figure-2_comparison-growth-curves-raw-vas-back-calculated.eps", height = 15, width = 10, device = cairo_pdf) # PDF
 
 # 4. Remove useless objects ----
 
