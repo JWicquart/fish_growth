@@ -1,0 +1,51 @@
+R version 4.0.1 (2020-06-06)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 18363)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=French_France.1252  LC_CTYPE=French_France.1252    LC_MONETARY=French_France.1252
+[4] LC_NUMERIC=C                   LC_TIME=French_France.1252    
+
+attached base packages:
+[1] parallel  stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] formattable_0.2.0.1  kableExtra_1.1.0     plotly_4.9.2.1       readxl_1.3.1        
+ [5] brms_2.13.0          Rcpp_1.0.4.6         bayesplot_1.7.2      rstan_2.19.3        
+ [9] StanHeaders_2.21.0-5 plyr_1.8.6           rfishbase_3.0.4      forcats_0.5.0       
+[13] stringr_1.4.0        dplyr_1.0.0          purrr_0.3.4          readr_1.3.1         
+[17] tidyr_1.1.0          tibble_3.0.1         ggplot2_3.3.2        tidyverse_1.3.0     
+
+loaded via a namespace (and not attached):
+  [1] colorspace_1.4-1     ellipsis_0.3.1       ggridges_0.5.2       rsconnect_0.8.16    
+  [5] estimability_1.3     htmlTable_2.0.1      markdown_1.1         base64enc_0.1-3     
+  [9] fs_1.4.1             rstudioapi_0.11      DT_0.13              gh_1.1.0            
+ [13] fansi_0.4.1          mvtnorm_1.1-1        lubridate_1.7.9      xml2_1.3.2          
+ [17] bridgesampling_1.0-0 splines_4.0.1        knitr_1.28           shinythemes_1.1.2   
+ [21] Formula_1.2-3        jsonlite_1.6.1       packrat_0.5.0        broom_0.5.6         
+ [25] cluster_2.1.0        dbplyr_1.4.4         png_0.1-7            shiny_1.5.0         
+ [29] compiler_4.0.1       httr_1.4.1           emmeans_1.5.0        backports_1.1.7     
+ [33] lazyeval_0.2.2       assertthat_0.2.1     Matrix_1.2-18        fastmap_1.0.1       
+ [37] cli_2.0.2            later_1.1.0.1        acepack_1.4.1        htmltools_0.5.0     
+ [41] prettyunits_1.1.1    tools_4.0.1          igraph_1.2.5         coda_0.19-3         
+ [45] gtable_0.3.0         glue_1.4.1           reshape2_1.4.4       cellranger_1.1.0    
+ [49] vctrs_0.3.1          nlme_3.1-148         crosstalk_1.1.0.1    xfun_0.14           
+ [53] ps_1.3.3             rvest_0.3.6          miniUI_0.1.1.1       mime_0.9            
+ [57] lifecycle_0.2.0      gtools_3.8.2         zoo_1.8-8            scales_1.1.1        
+ [61] colourpicker_1.0     hms_0.5.3            promises_1.1.1       Brobdingnag_1.2-6   
+ [65] inline_0.3.15        shinystan_2.5.0      RColorBrewer_1.1-2   yaml_2.2.1          
+ [69] memoise_1.1.0        gridExtra_2.3        loo_2.2.0            rpart_4.1-15        
+ [73] latticeExtra_0.6-29  stringi_1.4.6        dygraphs_1.1.1.6     checkmate_2.0.0     
+ [77] pkgbuild_1.0.8       rlang_0.4.6          pkgconfig_2.0.3      matrixStats_0.56.0  
+ [81] evaluate_0.14        lattice_0.20-41      rstantools_2.0.0     htmlwidgets_1.5.1   
+ [85] processx_3.4.2       tidyselect_1.1.0     magrittr_1.5         R6_2.4.1            
+ [89] generics_0.0.2       Hmisc_4.4-0          DBI_1.1.0            pillar_1.4.4        
+ [93] haven_2.3.1          foreign_0.8-80       withr_2.2.0          xts_0.12-0          
+ [97] survival_3.1-12      abind_1.4-5          nnet_7.3-14          modelr_0.1.8        
+[101] crayon_1.3.4         rmarkdown_2.3        jpeg_0.1-8.1         grid_4.0.1          
+[105] data.table_1.12.8    blob_1.2.1           callr_3.4.3          threejs_0.3.3       
+[109] webshot_0.5.2        reprex_0.3.0         digest_0.6.25        xtable_1.8-4        
+[113] httpuv_1.5.4         RcppParallel_5.0.1   stats4_4.0.1         munsell_0.5.0       
+[117] viridisLite_0.3.0    shinyjs_1.1         
