@@ -16,8 +16,14 @@ output:
 
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = TRUE, fig.height = 18, fig.width = 12, message = FALSE, warning = FALSE, fig.align = "center")
-
+knitr::opts_chunk$set(
+	echo = FALSE,
+	fig.align = "center",
+	fig.height = 18,
+	fig.width = 12,
+	message = FALSE,
+	warning = FALSE
+)
 ```
 
 # Defining functions and packages
@@ -65,10 +71,10 @@ data_complete %>%
               summarize_at(vars("ID", "Species", "Family"), n_distinct, na.rm = TRUE), .) %>% 
   bind_rows(data_complete %>%
               summarize_at(vars("ID", "Species", "Family"), n_distinct, na.rm = TRUE), .) %>% 
-  mutate(Type = c("All data", "Back-calculated sp. loc.", "Back-calculated sp."), .before = 1) %>% 
+  mutate(Type = c("Entire dataset", "Back-calculated data by sp. and loc.", "Back-calculated data by sp."), .before = 1) %>% 
   kable(., 
         col.names = c("", "Individual", "Species", "Family"), 
-        caption = "Table 1. Comparison of numbers of individuals, species and family for the overall dataset and for back-calculated data (by species, and by species and location).") %>% 
+        caption = "Table 1. Comparison of numbers of individuals, species and families for the entire dataset and for back-calculated data (by species, and by species and location).") %>% 
   kable_styling(bootstrap_options = c("striped", "hover"))
 
 ```
@@ -86,7 +92,7 @@ data_complete %>%
         max_age = max(Agei, na.rm = TRUE)) %>% 
   kable(., 
         col.names = c("Species", "n", "Min length (TL, mm)", "Max length (TL, mm)", "Age max (years)"),
-        caption = "Table 2. Number of individuals, minimum and maximum total length (mm) and maximum age, by species. Only individuals with back-calculated data by species are shown.") %>%
+        caption = "Table 2. Number of individuals, minimum and maximum total length (mm) and maximum age, by species. Only individuals with back-calculated data (by species) are shown.") %>%
   kable_styling(bootstrap_options = c("striped", "hover")) %>%
   column_spec(1, italic = T)
 
@@ -125,7 +131,7 @@ data_complete %>%
   summarise_all(~(sum(is.na(.)))) %>% 
   t(.) %>% 
   as.data.frame() %>% 
-  kable(., col.names = c("NA"), caption = "Table 4. Number of rows with Non-Available (NA) data by variable") %>% 
+  kable(., col.names = c("Number of rows with NA"), caption = "Table 4. Number of rows with Non-Available (NA) data by variable") %>% 
   kable_styling(bootstrap_options = c("striped", "hover"))
 
 ```
@@ -257,9 +263,7 @@ read.csv("./../data/03_back-calculated_vbgf_fitted_sploc.csv") %>%
 
 # 3. Raw *vs* Back-calculation
 
-## 3.1 Growth curves (sp.)
-
-```{r fig.width=8, fig.height=14, fig.cap="Figure 5. Comparison of growth curves by species between back-calculated data and population-level data."}
+```{r fig.height=14, fig.width=8, include=FALSE}
 
 # 1. List of species with enough individuals for one location ----
 
@@ -335,9 +339,7 @@ rm(data_raw_points, data_raw_curve, data_backcalc_points, data_backcalc_curve)
 
 ```
 
-## 3.2 Growth curves (sp. loc.)
-
-```{r fig.width=9, fig.height=12, fig.cap="Figure 6. Comparison of growth curves by species and location (one location only by growth curve) between back-calculated data and population-level data."}
+```{r fig.width=9, fig.height=12, fig.cap="Figure 5. Comparison of growth curves by species and location (one location only by growth curve) between back-calculated data and raw data (age estimated and length at capture)."}
 
 # 1. Transform the raw data ----
 
@@ -447,10 +449,6 @@ vbgf_literature <- vbgf_literature %>%
 
 ```
 
-## 4.1 Growth parameters
-
-### 4.1.1 Table
-
 ```{r}
 
 # 1. Get age max and length max by species ----
@@ -478,9 +476,7 @@ read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv") %>%
 
 ```
 
-### 4.1.2 Plot
-
-```{r fig.height=15, fig.width=30, fig.cap="Figure 8. Comparison of VBGF growth parameters estimated through Bayesian framework on species back-calculated data, with parameters from literature."}
+```{r fig.height=15, fig.width=30, include=FALSE}
 
 # 1. Comparison of VBGF parameters between our study and literature ----
 
@@ -506,9 +502,7 @@ vbgf_literature %>%
 
 ```
 
-## 4.2 Growth curves
-
-```{r fig.height=10, fig.width=15, fig.cap="Figure 9. Comparison of growth curves based on VBGF growth parameters estimated through Bayesian framework on species back-calculated data with growth curves from literature."}
+```{r fig.height=10, fig.width=15, include=FALSE}
 
 # 1. Get predictions from literature data ----
 
@@ -554,7 +548,7 @@ plot_final
 
 ```
 
-```{r fig.height=10, fig.width=9, fig.cap="Figure 10. Comparison of growth curves based on VBGF growth parameters estimated through Bayesian framework on species back-calculated data with growth curves from literature (interactive plot)."}
+```{r fig.height=10, fig.width=9, fig.cap="Figure 6. Comparison of growth curves based on VBGF growth parameters estimated through Bayesian framework on species back-calculated data with growth curves from literature (interactive plot)."}
 
 # 4. Convert to plotly ----
 
