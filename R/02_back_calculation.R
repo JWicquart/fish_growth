@@ -116,6 +116,7 @@ data_complete <- data_complete %>%
          "Weight" = "weight",
          "Location" = "location",
          "Observer" = "observer") %>% 
+  mutate(Family = str_replace_all(Family, c("Scaridae" = "Labridae"))) %>% 
   select(Family, Genus, Species, ID, Agei, Ri, Agecpt, Rcpt, Lcpt, L0p, R0p, 
          Li_sp_m, Li_sp_sd, Li_sploc_m, Li_sploc_sd, Weight, Location, Observer) %>% # Re-order variables
   write.csv(., "data/02_back-calculated-size-at-age_morat-et-al.csv", row.names = FALSE) # Export

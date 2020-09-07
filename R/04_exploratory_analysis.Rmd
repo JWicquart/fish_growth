@@ -472,7 +472,7 @@ read.csv("./../data/03_back-calculated_vbgf_predictions_sp.csv") %>%
   full_join(., vbgf_literature) %>%
   select(Species, Linf, K, t0, Age_max, Size_max, Reference) %>% 
   arrange(Species) %>% 
-  write.csv2(., "./../figs/online-only-table-2_comparison-vbgf-parameters-literature.csv", row.names = FALSE)
+  write.csv2(., "./../figs/online-only-table-3_comparison-vbgf-parameters-literature.csv", row.names = FALSE)
 
 ```
 
