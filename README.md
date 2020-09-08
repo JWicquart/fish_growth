@@ -79,24 +79,24 @@ The dataset **02_back-calculated-size-at-age_morat-et-al.csv** (18 var. and 6,32
 The dataset **03_back-calculated_vbgf_fitted_sp.csv** (8 var. and 5,474 obs.) corresponds to fitted values of Von Bertalanffy growth curve based on back-calculated data by species, and contains the following variables:
 
 - `age` Age *i* (*years*)
-- `ypred_m` Mean estimated value of total length at age *i*
-- `ypred_lq` Lower 95% confidence interval boundary of the `ypred_m`
-- `ypred_uq` Upper 95% confidence interval boundary of the `ypred_m`
-- `yrep_m` 
-- `yrep_lq` 
-- `yrep_uq` 
+- `ypred_m` Mean estimated value of total length at age *i* at population-level
+- `ypred_lq` Lower 95% credible interval boundary of the `ypred_m`
+- `ypred_uq` Upper 95% credible interval boundary of the `ypred_m`
+- `yrep_m`  Mean estimated value of total length at age *i* at individual-level
+- `yrep_lq` Lower 95% credible interval boundary of the `yrep_m`
+- `yrep_uq` Upper 95% credible interval boundary of the `yrep_m`
 - `Species` Species
 
 
 The dataset **03_back-calculated_vbgf_fitted_sploc.csv** (9 var. and 5,016 obs.) corresponds to fitted values of Von Bertalanffy growth curve based on back-calculated data by species and location, and contains the following variables:
 
 - `age` Age *i* (*years*)
-- `ypred_m` Mean estimated value of total length at age *i*
-- `ypred_lq` Lower 95% confidence interval boundary of the `ypred_m`
-- `ypred_uq` Upper 95% confidence interval boundary of the `ypred_m`
-- `yrep_m` 
-- `yrep_lq` 
-- `yrep_uq` 
+- `ypred_m` Mean estimated value of total length at age *i* at population-level
+- `ypred_lq` Lower 95% credible interval boundary of the `ypred_m`
+- `ypred_uq` Upper 95% credible interval boundary of the `ypred_m`
+- `yrep_m` Mean estimated value of total length at age *i* at individual-level
+- `yrep_lq` Lower 95% credible interval boundary of the `yrep_m`
+- `yrep_uq` Upper 95% credible interval boundary of the `yrep_m`
 - `Species` Species
 - `Location` Island of the sampling
 
@@ -107,8 +107,8 @@ The dataset **03_back-calculated_vbgf_predictions_sp.csv** (6 var. and 120 obs.)
 - `Agei` Age *i* (*years*)
 - `Estimate`  Mean estimated value of total length at age *i*
 - `Est.Error` Standard deviation around the `Estimate`
-- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
-- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+- `Q2.5` Lower 95% credible interval boundary of the `Estimate`
+- `Q97.5` Upper 95% credible interval boundary of the `Estimate`
 
 
 The dataset **03_back-calculated_vbgf_predictions_sploc.csv** (7 var. and 159 obs.) corresponds to estimated values of Von Bertalanffy growth parameters based on back-calculated data by species and location, and contains the following variables:
@@ -118,8 +118,8 @@ The dataset **03_back-calculated_vbgf_predictions_sploc.csv** (7 var. and 159 ob
 - `Agei` Age *i* (*years*)
 - `Estimate`  Mean estimated value of total length at age *i*
 - `Est.Error` Standard deviation around the `Estimate`
-- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
-- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+- `Q2.5` Lower 95% credible interval boundary of the `Estimate`
+- `Q97.5` Upper 95% credible interval boundary of the `Estimate`
 
 
 The dataset **03_raw_vbgf_fitted_sp.csv** (6 var. and 5,196 obs.) corresponds to fitted values of Von Bertalanffy growth curve based on raw data (age estimated and length at capture) by species, and contains the following variables:
@@ -128,8 +128,8 @@ The dataset **03_raw_vbgf_fitted_sp.csv** (6 var. and 5,196 obs.) corresponds to
 - `Agei` Age *i* (*years*)
 - `Estimate` Mean estimated value of total length at age *i*
 - `Est.Error` Standard deviation around the `Estimate`
-- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
-- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+- `Q2.5` Lower 95% credible interval boundary of the `Estimate`
+- `Q97.5` Upper 95% credible interval boundary of the `Estimate`
 
 
 The dataset **03_raw_vbgf_fitted_sploc.csv** (7 var. and 4,828 obs.) corresponds to fitted values of Von Bertalanffy growth curve based on raw data (age estimated and length at capture) by species, and contains the following variables:
@@ -139,8 +139,8 @@ The dataset **03_raw_vbgf_fitted_sploc.csv** (7 var. and 4,828 obs.) corresponds
 - `Agei` Age *i* (*years*)
 - `Estimate` Mean estimated value of total length at age *i*
 - `Est.Error` Standard deviation around the `Estimate`
-- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
-- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+- `Q2.5` Lower 95% credible interval boundary of the `Estimate`
+- `Q97.5` Upper 95% credible interval boundary of the `Estimate`
 
 
 The dataset **03_back-calculated_vbgf_predictions_sp.csv** (6 var. and 108 obs.) corresponds to estimated values of Von Bertalanffy growth parameters based on raw data (age estimated and length at capture) by species, and contains the following variables:
@@ -149,8 +149,8 @@ The dataset **03_back-calculated_vbgf_predictions_sp.csv** (6 var. and 108 obs.)
 - `Agei` Age *i* (*years*)
 - `Estimate` Mean estimated value of total length at age *i*
 - `Est.Error` Standard deviation around the `Estimate`
-- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
-- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+- `Q2.5` Lower 95% credible interval boundary of the `Estimate`
+- `Q97.5` Upper 95% credible interval boundary of the `Estimate`
 
 
 The dataset **03_back-calculated_vbgf_predictions_sploc.csv** (7 var. and 114 obs.) corresponds to estimated values of Von Bertalanffy growth parameters based on raw data (age estimated and length at capture) by species and location, and contains the following variables:
@@ -160,8 +160,8 @@ The dataset **03_back-calculated_vbgf_predictions_sploc.csv** (7 var. and 114 ob
 - `Agei` Age *i* (*years*)
 - `Estimate` Mean estimated value of total length at age *i*
 - `Est.Error` Standard deviation around the `Estimate`
-- `Q2.5` Lower 95% confidence interval boundary of the `Estimate`
-- `Q97.5` Upper 95% confidence interval boundary of the `Estimate`
+- `Q2.5` Lower 95% credible interval boundary of the `Estimate`
+- `Q97.5` Upper 95% credible interval boundary of the `Estimate`
 
 
 ### 2.3 Code description
@@ -171,7 +171,7 @@ The dataset **03_back-calculated_vbgf_predictions_sploc.csv** (7 var. and 114 ob
 
 * The codes _03_vbgf_back_calculated_sp.R_, _03_vbgf_back_calculated_sploc.R_, _03_vbgf_raw_sp.R_ and _03_vbgf_raw_sploc.R_ are respectively used to obtain Von Bertalanffy growth parameters and fitted values with back-calculated data by species, by species and location, with raw data by species, and by species and location. 
 
-* The `functions` folder contains the function _graphical_par.R_ and _theme_graph.R_ which are functions dedicated to graphical representations. The function _bcalc_bayes.R_ is used to fit Von Bertalanffy growth model, the function _growthreg.R_ is used to [...] and the function _pred_vbgf.R_ is used to fit Von Bertalanffy growth curves from values of the three parameters.
+* The `functions` folder contains the function _graphical_par.R_ and _theme_graph.R_ which are functions dedicated to graphical representations. The function _bcalc_bayes.R_ is used to fit Von Bertalanffy growth model, the function _growthreg.R_ is used to extract growth parameters from back-calculated data and the function _pred_vbgf.R_ is used to fit Von Bertalanffy growth curves from values of the three parameters.
 
 
 ### 2.4 How to reproduce the final datasets?
@@ -193,7 +193,7 @@ Please report any bugs or issues [HERE](https://github.com/JWicquart/fish_growth
 
 
 ```R
-R version 4.0.1 (2020-06-06)
+R version 3.6.3 (2020-02-29)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows 10 x64 (build 18363)
 
