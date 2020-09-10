@@ -412,7 +412,7 @@ ggplot() +
 # 3. Save the plot ----
 
 ggsave("./../figs/figure-2_comparison-growth-curves-raw-vas-back-calculated.png", height = 15, width = 10) # PNG
-ggsave("./../figs/figure-2_comparison-growth-curves-raw-vas-back-calculated.eps", height = 15, width = 10, device = cairo_pdf) # PDF
+ggsave("./../figs/figure-2_comparison-growth-curves-raw-vas-back-calculated.pdf", height = 15, width = 10, device = cairo_pdf) # PDF
 
 # 4. Remove useless objects ----
 
@@ -594,7 +594,7 @@ sections_example <- data_complete %>%
                    "GAM18_B066", "GAM18_A011", "GAM18_A214", # Labridae
                    "GAM18_B105", "GAM18_B093", # Lethrinidae
                    "LU_GI_MA_03_17_058", "GAM18_B099", "LU_FU_MO_03_16_007", # Lutjanidae
-                   "GAM18_B129", "MU_FL_MO_03_16_001B", # Mullidae
+                   "GAM18_B129", "MU_FL_MO_03_16_013B", # Mullidae
                    "GAM18_A135", "CE_BI_MO_03_16_002", "GAM18_B056", "GAM18_A162", "DA_AR_MO_03_16_011",
                    "GAM18_A036", "GAM18_A191", "CH_JO_MO_03_16_013", "ST_AL_MO_03_16_006", # Pomacentridae
                    "GAM18_A120", "SC_PS_TA_03_16_019", # Scaridae
