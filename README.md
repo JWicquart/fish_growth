@@ -27,10 +27,10 @@ On the project main page on GitHub, click on the green button `Code` and then cl
 
 This project is divided in 4 folders:
 
-* `data` folder contains 11 datasets (see part _2.2 Datasets description_).
-* `R` folder contains 3 _R_ codes and a `functions` folder (see part _2.3 Code description_).
-* `stan` folder contains 2 _stan_ codes used by the _R_ codes for Bayesian analyses. 
-* `output` folder contains an HTML file including basic exploratory analyses. This file must be open in a browser and to zoom on the figure within the file, right click on the figure and open it in a new window.
+* :open_file_folder:	`data` folder contains 11 datasets (see part _2.2 Datasets description_).
+* :open_file_folder:	`R` folder contains 3 _R_ codes and a `functions` folder (see part _2.3 Code description_).
+* :open_file_folder:	`stan` folder contains 2 _stan_ codes used by the _R_ codes for Bayesian analyses. 
+* :open_file_folder:	`output` folder contains an HTML file including basic exploratory analyses. This file must be open in a browser and to zoom on the figure within the file, right click on the figure and open it in a new window.
 
 
 ### 2.2 Datasets description
